@@ -9,6 +9,8 @@ import ImageViewer from '../components/ImageViewer';
 import { useVisionCorrection, getVisionCorrectionStyle } from '../hooks/useVisionCorrection';
 
 const ContentDemo = () => {
+  console.log("✅ Loaded latest version of ContentDemo");
+  
   const { isEnabled, diopterValue, blurAmount, calibrationValue } = useVisionCorrection();
   const debugCalibrationValue = typeof window !== 'undefined' ? localStorage.getItem('calibrationValue') : null;
 const debugVisionEnabled = typeof window !== 'undefined' ? localStorage.getItem('visionCorrectionEnabled') : null;
