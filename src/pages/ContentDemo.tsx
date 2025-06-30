@@ -401,23 +401,27 @@ v>
             </ol>
           </div>
 
-          {/* Debug Info */}
-          {import.meta.env.DEV && (
-            <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-2xl p-4">
-              <h4 className="font-semibold text-yellow-900 mb-2">🐛 Debug Info:</h4>
-              <div className="text-xs text-yellow-800 space-y-1">
-<p>localStorage.calibrationValue: {debugCalibrationValue}</p>
-<p>localStorage.visionCorrectionEnabled: {debugVisionEnabled}</p>
-<p>localStorage.estimatedSphere: {typeof window !== 'undefined' ? localStorage.getItem('estimatedSphere') : null}</p>
-                <p>Hook isEnabled: {String(isEnabled)}</p>
-                <p>Hook calibrationValue: {calibrationValue.toFixed(2)}</p>
-                <p>Hook diopterValue: {diopterValue.toFixed(2)}</p>
-                <p>Hook blurAmount: {blurAmount.toFixed(2)}</p>
-                <p>Selected prescription: {selectedRx.toFixed(2)}</p>
-                <p>Eye test blur: {eyeTestBlur.toFixed(2)}px</p>
-                <p>Current calibration: {currentCalibration.toFixed(2)}</p>
-              </div>
-            </div>
+{/* 🐛 Debug Info */}
+{import.meta.env.DEV && (
+  <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-2xl p-4">
+    <h4 className="font-semibold text-yellow-900 mb-2">🐛 Debug Info:</h4>
+    <div className="text-xs text-yellow-800 space-y-1">
+      <p>localStorage.calibrationValue: {debugCalibrationValue}</p>
+      <p>localStorage.visionCorrectionEnabled: {debugVisionEnabled}</p>
+      <p>
+        localStorage.estimatedSphere:{' '}
+        {typeof window !== 'undefined' ? localStorage.getItem('estimatedSphere') : null}
+      </p>
+      <p>Hook isEnabled: {String(isEnabled)}</p>
+      <p>Hook calibrationValue: {calibrationValue.toFixed(2)}</p>
+      <p>Hook diopterValue: {diopterValue.toFixed(2)}</p>
+      <p>Hook blurAmount: {blurAmount.toFixed(2)}</p>
+      <p>Selected prescription: {selectedRx.toFixed(2)}</p>
+      <p>Eye test blur: {eyeTestBlur.toFixed(2)}px</p>
+      <p>Current calibration: {currentCalibration.toFixed(2)}</p>
+    </div>
+  </div>
+)}
           )}
         </div>
       </div>
