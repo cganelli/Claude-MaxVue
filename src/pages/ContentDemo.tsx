@@ -13,7 +13,10 @@ const ContentDemo = () => {
   const debugCalibrationValue = typeof window !== 'undefined' ? localStorage.getItem('calibrationValue') : null;
 const debugVisionEnabled = typeof window !== 'undefined' ? localStorage.getItem('visionCorrectionEnabled') : null;
   const visionStyle = getVisionCorrectionStyle();
-  const [selectedRx, setSelectedRx] = useState(2.0);
+  const [selectedRx, setSelectedRx] = useState(() => {
+  const savedRx = localStorage.getItem('estimatedSphere');
+  return savedRx ? parseFloat(savedRx) : 2.0;
+});
   const [showEyeTest, setShowEyeTest] = useState(true);
 
   // ✅ FIXED: Eye test blur simulation using current calibration from localStorage
