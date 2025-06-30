@@ -4,14 +4,12 @@ import BottomNavigation from '../components/BottomNavigation';
 import VisionCorrectionModal from '../components/VisionCorrectionModal';
 import VoiceCommandModal from '../components/VoiceCommandModal';
 import { triggerVisionCorrectionUpdate } from '../hooks/useVisionCorrection';
-import { useVisionCorrection } from '../hooks/useVisionCorrection';
 
 const Homepage = () => {
   const [visionCorrectionEnabled, setVisionCorrectionEnabled] = useState(false);
   const [showVisionModal, setShowVisionModal] = useState(false);
   const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [hasConfirmedVision, setHasConfirmedVision] = useState(false);
-const { blurAmount } = useVisionCorrection();
 
   // Check localStorage on component mount to set initial state
   useEffect(() => {
@@ -79,10 +77,8 @@ const { blurAmount } = useVisionCorrection();
   };
 
   return (
-   <div
-  className="min-h-screen bg-[#eaf1fd] font-garamond pb-20"
-  style={{ filter: blurAmount > 0 ? `blur(${blurAmount}px)` : 'none', transition: 'filter 0.3s ease' }}
->
+  <div className="min-h-screen bg-[#eaf1fd] font-garamond pb-20">
+
       <div className="px-4 py-8">
         <div className="max-w-md mx-auto">
           {/* Header */}
