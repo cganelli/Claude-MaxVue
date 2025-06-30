@@ -17,6 +17,10 @@ import More from './pages/More';
 import NewMore from './pages/NewMore';
 import Homepage from './pages/Homepage';
 import ContentDemo from './pages/ContentDemo';
+import LandingPage from './pages/LandingPage';
+import FAQPage from './pages/FAQPage';
+import PrivacyPage from './pages/PrivacyPage';
+import TermsPage from './pages/TermsPage';
 import { supabase } from './lib/supabase';
 
 const LoadingSpinner = () => (
@@ -178,6 +182,9 @@ function AppContent() {
           <Route path="/homepage" element={<Homepage />} />
           <Route path="/content-demo" element={<ContentDemo />} />
           <Route path="/new-login" element={<NewLogin />} />
+          <Route path="/faq" element={<FAQPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
           <Route path="*" element={<Navigate to="/welcome" replace />} />
         </Routes>
         <DevResetButton />
@@ -185,12 +192,12 @@ function AppContent() {
     );
   }
 
-  // ✅ 3. If not authenticated, show public routes (including content-demo)
+  // ✅ 3. If not authenticated, show public routes (including landing page and legal pages)
   console.log('👤 User not authenticated, showing public routes');
   return (
     <div className="min-h-screen bg-[#eaf1fd]">
       <Routes>
-        <Route path="/" element={<Navigate to="/register" replace />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/new-login" element={<NewLogin />} />
@@ -198,7 +205,10 @@ function AppContent() {
         <Route path="/vision-calibration" element={<VisionCalibration />} />
         <Route path="/content-demo" element={<ContentDemo />} />
         <Route path="/homepage" element={<Homepage />} />
-        <Route path="*" element={<Navigate to="/register" replace />} />
+        <Route path="/faq" element={<FAQPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <DevResetButton />
       <DevBypassAuthButton />
