@@ -313,82 +313,82 @@ const ContentDemo = () => {
           </div>
 
           {/* Content Viewers */}
-          <div className="space-y-6">
+
             {/* Camera Preview */}
-            <div>
-              <h3 className="text-lg font-bold text-black mb-3">📷 Camera Preview</h3>
-              <CameraPreview 
-                className="h-48"
-                onCapture={handlePhotoCapture}
-              />
-              <div className="mt-2 text-center">
-                <span className="text-xs text-gray-500">
-                  Current blur: {blurAmount.toFixed(2)}px
-                </span>
-              </div>
-            </div>
+            <div style={getVisionCorrectionStyle()}>
+  <h3 className="text-lg font-bold text-black mb-3">📷 Camera Preview</h3>
+  <CameraPreview className="h-48" onCapture={handlePhotoCapture} />
+  <div className="mt-2 text-center">
+    <span className="text-xs text-gray-500">
+      Current blur: {blurAmount.toFixed(2)}px
+    </span>
+  </div>
+</div>
+            
+{/* Web Viewer */}
+<div style={getVisionCorrectionStyle()}>
+  <h3 className="text-lg font-bold text-black mb-3">🌐 Web Viewer</h3>
+  <WebViewer />
+  <div className="mt-2 text-center">
+    <span className="text-xs text-gray-500">
+      Current blur: {blurAmount.toFixed(2)}px
+    </span>
+  </div>
+</div>
 
-            {/* Web Viewer */}
-            <div>
-              <h3 className="text-lg font-bold text-black mb-3">🌐 Web Viewer</h3>
-              <WebViewer />
-              <div className="mt-2 text-center">
-                <span className="text-xs text-gray-500">
-                  Current blur: {blurAmount.toFixed(2)}px
-                </span>
-              </div>
+                   {/* ✅ FIXED: Reading Test using useVisionCorrection hook */}
+        <div>
+          <h3 className="text-lg font-bold text-black mb-3">📝 Reading Test</h3>
+          <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div
+              className="text-gray-800 leading-relaxed transition-all duration-300"
+              style={getVisionCorrectionStyle()}
+            >
+              <h4 className="text-xl font-bold mb-4">Calibration Reading Test</h4>
+              <p className="mb-4">
+                This text demonstrates the vision correction system. When enabled, the blur is calculated 
+                relative to your personal calibration point. The formula is: blur = Math.max(0, calibrationValue - prescription).
+              </p>
+              <p className="mb-4">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod 
+                tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim 
+                veniam, quis nostrud exercitation ullamco laboris.
+              </p>
             </div>
-
-            {/* Email Viewer */}
-            <div>
-              <h3 className="text-lg font-bold text-black mb-3">📩 Email Viewer</h3>
-              <EmailViewer />
-              <div className="mt-2 text-center">
-                <span className="text-xs text-gray-500">
-                  Current blur: {blurAmount.toFixed(2)}px
-                </span>
-              </div>
+            <div className={`p-4 rounded-lg mt-4 ${isEnabled ? 'bg-green-50' : 'bg-red-50'}`}>
+              <p className={`font-semibold ${isEnabled ? 'text-green-800' : 'text-red-800'}`}>
+                {isEnabled ? 
+                  `✅ Vision correction ENABLED – dynamic correction: ${blurAmount.toFixed(2)}px` : 
+                  `✅ Vision correction DISABLED – baseline blur applied: ${blurAmount.toFixed(2)}px`
+                }
+              </p>
             </div>
+          </div>
+        </div>
 
-            {/* Image Viewer */}
-            <div>
-              <h3 className="text-lg font-bold text-black mb-3">🖼️ Image Viewer</h3>
-              <ImageViewer />
-              <div className="mt-2 text-center">
-                <span className="text-xs text-gray-500">
-                  Current blur: {blurAmount.toFixed(2)}px
-                </span>
-              </div>
-            </div>
+  {/* Email Viewer */}
+<div style={getVisionCorrectionStyle()}>
+  <h3 className="text-lg font-bold text-black mb-3">📩 Email Viewer</h3>
+  <EmailViewer />
+  <div className="mt-2 text-center">
+    <span className="text-xs text-gray-500">
+      Current blur: {blurAmount.toFixed(2)}px
+    </span>
+  </div>
+</div>
 
-            {/* ✅ FIXED: Reading Test using useVisionCorrection hook */}
-            <div>
-              <h3 className="text-lg font-bold text-black mb-3">📝 Reading Test</h3>
-              <div className="bg-white rounded-2xl shadow-lg p-6">
-                <div 
-                  className="text-gray-800 leading-relaxed transition-all duration-300"
-                  style={getVisionCorrectionStyle()}
-                >
-                  <h4 className="text-xl font-bold mb-4">Calibration Reading Test</h4>
-                  <p className="mb-4">
-                    This text demonstrates the vision correction system. When enabled, the blur is calculated 
-                    relative to your personal calibration point. The formula is: blur = Math.max(0, calibrationValue - prescription).
-                  </p>
-                  <p className="mb-4">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod 
-                    tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim 
-                    veniam, quis nostrud exercitation ullamco laboris.
-                  </p>
-                </div>
-                <div className={`p-4 rounded-lg mt-4 ${isEnabled ? 'bg-green-50' : 'bg-red-50'}`}>
-                  <p className={`font-semibold ${isEnabled ? 'text-green-800' : 'text-red-800'}`}>
-                    {isEnabled ? 
-                      `✅ Vision correction ENABLED - dynamic correction: ${blurAmount.toFixed(2)}px` : 
-                      `✅ Vision correction DISABLED - baseline blur applied: ${blurAmount.toFixed(2)}px`
-                    }
-                  </p>
-                </div>
-              </div>
+
+  {/* Image Viewer */}
+<div style={getVisionCorrectionStyle()}>
+  <h3 className="text-lg font-bold text-black mb-3">🖼️ Image Viewer</h3>
+  <ImageViewer />
+  <div className="mt-2 text-center">
+    <span className="text-xs text-gray-500">
+      Current blur: {blurAmount.toFixed(2)}px
+    </span>
+  </div>
+</div>
+
             </div>
           </div>
 

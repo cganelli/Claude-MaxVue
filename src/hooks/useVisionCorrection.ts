@@ -99,7 +99,10 @@ export const useVisionCorrection = (): VisionCorrectionState => {
   };
 };
 
-// ✅ FIXED: Vision correction style with proper toggle state logic - no clamping to +2.0D
+// ✅ FIXED: Vision correction style with proper toggle state logic – no clamping to +2.0D 
+// (debug update)
+
+
 export const getVisionCorrectionStyle = (customBlur?: number): React.CSSProperties => {
   try {
     const enabled = localStorage.getItem('visionCorrectionEnabled') === 'true';
@@ -124,7 +127,13 @@ export const getVisionCorrectionStyle = (customBlur?: number): React.CSSProperti
     if (isNaN(blurPx) || blurPx < 0) {
       blurPx = 0;
     }
-    
+    console.log("💡 getVisionCorrectionStyle running", {
+  enabled,
+  calibration,
+  prescription,
+  blurPx,
+});
+
     return {
       filter: blurPx > 0 ? `blur(${blurPx.toFixed(2)}px)` : 'none',
       transition: 'filter 0.3s ease'
