@@ -5,14 +5,14 @@ import BottomNavigation from '../components/BottomNavigation';
 import Button from '../components/Button';
 
 const VisionCalibration = () => {
-  const [selectedValue, setSelectedValue] = useState(2.0); // Start at 2.0D
+   const [selectedValue, setSelectedValue] = useState(0.0); // default to 0D
   const navigate = useNavigate();
-  
-  // ✅ FIXED: Eye test blur simulation using current calibration from localStorage
-  const storedCalibration = localStorage.getItem('calibrationValue');
+
+  // During calibration, blur should always be 0 so the user sees clearly
+  const eyeTestBlur = 0;
+
+
   // ✅ FIXED: Remove fallback to 2.0 - use 0.0 if no calibration found
-  const calibration = storedCalibration ? parseFloat(storedCalibration) : 0.0;
-  const eyeTestBlur = Math.max(0, calibration - selectedValue);
 
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = parseFloat(e.target.value);
