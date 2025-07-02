@@ -13,16 +13,16 @@ const ContentDemo = () => {
   
   const { isEnabled, diopterValue, blurAmount, calibrationValue } = useVisionCorrection();
   const debugCalibrationValue = typeof window !== 'undefined' ? localStorage.getItem('calibrationValue') : null;
-const debugVisionEnabled = typeof window !== 'undefined' ? localStorage.getItem('visionCorrectionEnabled') : null;
+  const debugVisionEnabled = typeof window !== 'undefined' ? localStorage.getItem('visionCorrectionEnabled') : null;
   const visionStyle = getVisionCorrectionStyle();
   const [selectedRx, setSelectedRx] = useState(() => {
-  const savedRx = localStorage.getItem('estimatedSphere');
-  return savedRx ? parseFloat(savedRx) : 2.0;
-});
+    const savedRx = localStorage.getItem('estimatedSphere');
+    return savedRx ? parseFloat(savedRx) : 2.0;
+  });
   const [showEyeTest, setShowEyeTest] = useState(true);
 
   // ✅ FIXED: Eye test blur simulation using current calibration from localStorage
-const storedCalibration = typeof window !== 'undefined' ? localStorage.getItem('calibrationValue') : null;
+  const storedCalibration = typeof window !== 'undefined' ? localStorage.getItem('calibrationValue') : null;
   // ✅ FIXED: Remove fallback to 2.0 - use 0.0 if no calibration found
   const currentCalibration = storedCalibration ? parseFloat(storedCalibration) : 0.0;
   const eyeTestBlur = Math.max(0, currentCalibration - selectedRx);
@@ -321,76 +321,76 @@ const storedCalibration = typeof window !== 'undefined' ? localStorage.getItem('
           </div>
 
           {/* Content Viewers */}
-
+          <div className="space-y-6">
             {/* Camera Preview */}
             <div style={visionStyle}>
-  <h3 className="text-lg font-bold text-black mb-3">📷 Camera Preview</h3>
-  <CameraPreview className="h-48" onCapture={handlePhotoCapture} />
-  <div className="mt-2 text-center">
-    <span className="text-xs text-gray-500">
-      Current blur: {blurAmount.toFixed(2)}px
-    </span>
-  </div>
+              <h3 className="text-lg font-bold text-black mb-3">📷 Camera Preview</h3>
+              <CameraPreview className="h-48" onCapture={handlePhotoCapture} />
+              <div className="mt-2 text-center">
+                <span className="text-xs text-gray-500">
+                  Current blur: {blurAmount.toFixed(2)}px
+                </span>
+              </div>
+            </div>
             
-{/* Web Viewer */}
-<div style={visionStyle}>
-  <h3 className="text-lg font-bold text-black mb-3">🌐 Web Viewer</h3>
-  <WebViewer />
-  <div className="mt-2 text-center">
-    <span className="text-xs text-gray-500">
-      Current blur: {blurAmount.toFixed(2)}px
-    </span>
-  </div>
+            {/* Web Viewer */}
+            <div style={visionStyle}>
+              <h3 className="text-lg font-bold text-black mb-3">🌐 Web Viewer</h3>
+              <WebViewer />
+              <div className="mt-2 text-center">
+                <span className="text-xs text-gray-500">
+                  Current blur: {blurAmount.toFixed(2)}px
+                </span>
+              </div>
+            </div>
 
-{/* ✅ FIXED: Reading Test using useVisionCorrection hook */}
-<div style={visionStyle}>
-  <h3 className="text-lg font-bold text-black mb-3">📝 Reading Test</h3>
-  <div className="bg-white rounded-2xl shadow-lg p-6">
-    <div className="text-gray-800 leading-relaxed transition-all duration-300">
-      <h4 className="text-xl font-bold mb-4">Calibration Reading Test</h4>
-      <p className="mb-4">
-        This text demonstrates the vision correction system. When enabled, the blur is calculated 
-        relative to your personal calibration point. The formula is: blur = Math.max(0, calibrationValue - prescription).
-      </p>
-      <p className="mb-4">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod 
-        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim 
-        veniam, quis nostrud exercitation ullamco laboris.
-      </p>
-    </div>
-    <div className={`p-4 rounded-lg mt-4 ${isEnabled ? 'bg-green-50' : 'bg-red-50'}`}>
-      <p className={`font-semibold ${isEnabled ? 'text-green-800' : 'text-red-800'}`}>
-        {isEnabled ? 
-          `✅ Vision correction ENABLED – dynamic correction: ${blurAmount.toFixed(2)}px` : 
-          `✅ Vision correction DISABLED – baseline blur applied: ${blurAmount.toFixed(2)}px`
-        }
-      </p>
-    </div>
-  </div>
-</div>
-v>
+            {/* ✅ FIXED: Reading Test using useVisionCorrection hook */}
+            <div style={visionStyle}>
+              <h3 className="text-lg font-bold text-black mb-3">📝 Reading Test</h3>
+              <div className="bg-white rounded-2xl shadow-lg p-6">
+                <div className="text-gray-800 leading-relaxed transition-all duration-300">
+                  <h4 className="text-xl font-bold mb-4">Calibration Reading Test</h4>
+                  <p className="mb-4">
+                    This text demonstrates the vision correction system. When enabled, the blur is calculated 
+                    relative to your personal calibration point. The formula is: blur = Math.max(0, calibrationValue - prescription).
+                  </p>
+                  <p className="mb-4">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod 
+                    tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim 
+                    veniam, quis nostrud exercitation ullamco laboris.
+                  </p>
+                </div>
+                <div className={`p-4 rounded-lg mt-4 ${isEnabled ? 'bg-green-50' : 'bg-red-50'}`}>
+                  <p className={`font-semibold ${isEnabled ? 'text-green-800' : 'text-red-800'}`}>
+                    {isEnabled ? 
+                      `✅ Vision correction ENABLED – dynamic correction: ${blurAmount.toFixed(2)}px` : 
+                      `✅ Vision correction DISABLED – baseline blur applied: ${blurAmount.toFixed(2)}px`
+                    }
+                  </p>
+                </div>
+              </div>
+            </div>
 
-  {/* Email Viewer */}
-<div style={visionStyle}>
-  <h3 className="text-lg font-bold text-black mb-3">📩 Email Viewer</h3>
-  <EmailViewer />
-  <div className="mt-2 text-center">
-    <span className="text-xs text-gray-500">
-      Current blur: {blurAmount.toFixed(2)}px
-    </span>
-  </div>
+            {/* Email Viewer */}
+            <div style={visionStyle}>
+              <h3 className="text-lg font-bold text-black mb-3">📩 Email Viewer</h3>
+              <EmailViewer />
+              <div className="mt-2 text-center">
+                <span className="text-xs text-gray-500">
+                  Current blur: {blurAmount.toFixed(2)}px
+                </span>
+              </div>
+            </div>
 
-
-  {/* Image Viewer */}
-<div style={visionStyle}>
-  <h3 className="text-lg font-bold text-black mb-3">🖼️ Image Viewer</h3>
-  <ImageViewer />
-  <div className="mt-2 text-center">
-    <span className="text-xs text-gray-500">
-      Current blur: {blurAmount.toFixed(2)}px
-    </span>
-  </div>
-
+            {/* Image Viewer */}
+            <div style={visionStyle}>
+              <h3 className="text-lg font-bold text-black mb-3">🖼️ Image Viewer</h3>
+              <ImageViewer />
+              <div className="mt-2 text-center">
+                <span className="text-xs text-gray-500">
+                  Current blur: {blurAmount.toFixed(2)}px
+                </span>
+              </div>
             </div>
           </div>
 
@@ -406,27 +406,26 @@ v>
             </ol>
           </div>
 
-{/* 🐛 Debug Info */}
-{import.meta.env.DEV && (
-  <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-2xl p-4">
-    <h4 className="font-semibold text-yellow-900 mb-2">🐛 Debug Info:</h4>
-    <div className="text-xs text-yellow-800 space-y-1">
-      <p>localStorage.calibrationValue: {debugCalibrationValue}</p>
-      <p>localStorage.visionCorrectionEnabled: {debugVisionEnabled}</p>
-      <p>
-        localStorage.estimatedSphere:{' '}
-        {typeof window !== 'undefined' ? localStorage.getItem('estimatedSphere') : null}
-      </p>
-      <p>Hook isEnabled: {String(isEnabled)}</p>
-      <p>Hook calibrationValue: {calibrationValue.toFixed(2)}</p>
-      <p>Hook diopterValue: {diopterValue.toFixed(2)}</p>
-      <p>Hook blurAmount: {blurAmount.toFixed(2)}</p>
-      <p>Selected prescription: {selectedRx.toFixed(2)}</p>
-      <p>Eye test blur: {eyeTestBlur.toFixed(2)}px</p>
-      <p>Current calibration: {currentCalibration.toFixed(2)}</p>
-    </div>
-  </div>
-)}
+          {/* 🐛 Debug Info */}
+          {import.meta.env.DEV && (
+            <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-2xl p-4">
+              <h4 className="font-semibold text-yellow-900 mb-2">🐛 Debug Info:</h4>
+              <div className="text-xs text-yellow-800 space-y-1">
+                <p>localStorage.calibrationValue: {debugCalibrationValue}</p>
+                <p>localStorage.visionCorrectionEnabled: {debugVisionEnabled}</p>
+                <p>
+                  localStorage.estimatedSphere:{' '}
+                  {typeof window !== 'undefined' ? localStorage.getItem('estimatedSphere') : null}
+                </p>
+                <p>Hook isEnabled: {String(isEnabled)}</p>
+                <p>Hook calibrationValue: {calibrationValue.toFixed(2)}</p>
+                <p>Hook diopterValue: {diopterValue.toFixed(2)}</p>
+                <p>Hook blurAmount: {blurAmount.toFixed(2)}</p>
+                <p>Selected prescription: {selectedRx.toFixed(2)}</p>
+                <p>Eye test blur: {eyeTestBlur.toFixed(2)}px</p>
+                <p>Current calibration: {currentCalibration.toFixed(2)}</p>
+              </div>
+            </div>
           )}
         </div>
       </div>
