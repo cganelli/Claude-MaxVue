@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useVisionCorrection } from "../hooks/useVisionCorrection";
+import { cacheManager } from "../utils/cacheUtils";
 
 interface VisionProcessorProps {
   children: React.ReactNode;
@@ -36,6 +37,7 @@ const VisionControls: React.FC<VisionControlsProps> = ({
   resetSettings,
 }) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [cacheRefreshing, setCacheRefreshing] = useState(false);
 
   // Get calibration value from localStorage
   const calibrationValue = parseFloat(
@@ -50,6 +52,24 @@ const VisionControls: React.FC<VisionControlsProps> = ({
   ) => {
     const diopter = parseFloat(e.target.value);
     updateSettings({ readingVision: diopter });
+  };
+
+  const handleCacheRefresh = async () => {
+    setCacheRefreshing(true);
+    try {
+      console.log("🔄 Manual cache refresh initiated");
+      const result = await cacheManager.forceCacheRefresh();
+      if (result.success) {
+        console.log("✅ Cache refreshed successfully, reloading...");
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        console.error("❌ Cache refresh failed:", result.error);
+      }
+    } catch (error) {
+      console.error("❌ Cache refresh error:", error);
+    } finally {
+      setCacheRefreshing(false);
+    }
   };
 
   return (
@@ -172,6 +192,23 @@ const VisionControls: React.FC<VisionControlsProps> = ({
               className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
             >
               Reset to Defaults
+            </button>
+            <button
+              onClick={handleCacheRefresh}
+              disabled={cacheRefreshing}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-blue-300 transition-colors flex items-center space-x-2"
+            >
+              {cacheRefreshing ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span>Refreshing...</span>
+                </>
+              ) : (
+                <>
+                  <span>🔄</span>
+                  <span>Refresh Cache</span>
+                </>
+              )}
             </button>
           </div>
         </div>

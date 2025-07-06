@@ -478,10 +478,11 @@ export class VisionCorrectionEngine {
     try {
       // CRITICAL FIX: Use CSS-only processing for ALL images to prevent display issues
       // Canvas processing was causing images to disappear or not display properly
-      console.log(
-        "Processing image with CSS filters (canvas disabled):",
-        img.src,
-      );
+      // CRITICAL FIX: Remove repeated console.log to prevent log spam
+      // console.log(
+      //   "Processing image with CSS filters (canvas disabled):",
+      //   img.src,
+      // );
       this.processImageWithCSS(img);
 
       // Mark as fully processed

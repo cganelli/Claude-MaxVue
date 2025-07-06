@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { cacheManager } from "./utils/cacheUtils";
 
 // Register service worker for PWA functionality
 if ("serviceWorker" in navigator) {
@@ -14,6 +15,9 @@ if ("serviceWorker" in navigator) {
           registration,
         );
 
+        // CRITICAL FIX: Initialize deployment cache refresh for new fixes
+        cacheManager.initializeDeploymentRefresh();
+
         // Check for updates
         registration.addEventListener("updatefound", () => {
           const newWorker = registration.installing;
@@ -24,7 +28,12 @@ if ("serviceWorker" in navigator) {
                 navigator.serviceWorker.controller
               ) {
                 console.log("MaxVue: New service worker version available");
-                // Could show update notification to user here
+                console.log("MaxVue: Forcing cache refresh for updated content");
+                // Force cache refresh when new service worker is available
+                cacheManager.forceCacheRefresh().then(() => {
+                  console.log("MaxVue: Cache refreshed, reloading for new fixes");
+                  setTimeout(() => window.location.reload(), 2000);
+                });
               }
             });
           }

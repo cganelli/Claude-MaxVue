@@ -1,7 +1,8 @@
 {
   "name": "MaxVue Vision Correction Demo",
-  "short_name": "MaxVue Demo",
+  "short_name": "MaxVue Demo", 
   "description": "Experience advanced presbyopia correction with MaxVue's vision correction technology",
+  "version": "2.0.1",
   "start_url": "/demo",
   "display": "standalone",
   "background_color": "#eaf1fd",

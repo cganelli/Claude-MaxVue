@@ -81,21 +81,39 @@ export const useVisionCorrection = (): UseVisionCorrectionReturn => {
 
   // Load settings and calibration from localStorage on mount
   useEffect(() => {
+    console.log("🔍 VisionHook: Loading settings and calibration...");
+    
     const savedSettings = localStorage.getItem(STORAGE_KEY);
     const savedCalibration = localStorage.getItem(CALIBRATION_KEY);
+    
+    // CRITICAL FIX: Also check for legacy calibrationValue key from VisionCalibration page
+    const legacyCalibrationValue = localStorage.getItem("calibrationValue");
+    const visionEnabled = localStorage.getItem("visionCorrectionEnabled");
+    
+    console.log("📊 VisionHook: Storage debug:", {
+      savedSettings: savedSettings ? "Present" : "Missing",
+      savedCalibration: savedCalibration ? "Present" : "Missing", 
+      legacyCalibrationValue: legacyCalibrationValue,
+      visionEnabled: visionEnabled,
+      allVisionKeys: Object.keys(localStorage).filter(k => k.includes('vision') || k.includes('calibr')),
+    });
 
+    // Load settings
     if (savedSettings) {
       try {
         const parsed = JSON.parse(savedSettings);
+        console.log("✅ VisionHook: Loaded settings:", parsed);
         setSettings({ ...DEFAULT_SETTINGS, ...parsed });
       } catch (e) {
         console.warn("Failed to load vision settings:", e);
       }
     }
 
+    // Load calibration data (new format)
     if (savedCalibration) {
       try {
         const parsed = JSON.parse(savedCalibration);
+        console.log("✅ VisionHook: Loaded new calibration format:", parsed);
         setCalibrationData(parsed);
         // Apply calibration data to settings
         if (parsed) {
@@ -108,6 +126,31 @@ export const useVisionCorrection = (): UseVisionCorrectionReturn => {
         }
       } catch (e) {
         console.warn("Failed to load calibration data:", e);
+      }
+    }
+    
+    // CRITICAL FIX: Load legacy calibration value from VisionCalibration page
+    else if (legacyCalibrationValue) {
+      const calibrationVal = parseFloat(legacyCalibrationValue);
+      console.log(`🔧 VisionHook: Loading legacy calibration: +${calibrationVal.toFixed(2)}D`);
+      
+      if (calibrationVal > 0) {
+        // Create calibration data from legacy value
+        const legacyCalibrationData: CalibrationData = {
+          readingVision: calibrationVal,
+          contrastBoost: 15,
+          edgeEnhancement: 25,
+          timestamp: Date.now(),
+        };
+        
+        setCalibrationData(legacyCalibrationData);
+        setSettings((prev) => ({
+          ...prev,
+          readingVision: calibrationVal,
+          isEnabled: visionEnabled === "true",
+        }));
+        
+        console.log(`✅ VisionHook: Applied legacy calibration +${calibrationVal.toFixed(2)}D to settings`);
       }
     }
   }, []);
@@ -217,7 +260,10 @@ export const useVisionCorrection = (): UseVisionCorrectionReturn => {
         );
 
         images.forEach((img) => {
-          if (img.complete) processElement(img);
+          // CRITICAL FIX: Only process images that haven't been processed yet
+          if (img.complete && !img.hasAttribute("data-vision-processed") && !img.hasAttribute("data-vision-processing")) {
+            processElement(img);
+          }
         });
 
         videos.forEach((video) => processElement(video));
@@ -288,10 +334,15 @@ export const useVisionCorrection = (): UseVisionCorrectionReturn => {
               );
 
               newImages?.forEach((img) => {
-                if (img.complete) {
+                // CRITICAL FIX: Only process new images that haven't been processed yet
+                if (img.complete && !img.hasAttribute("data-vision-processed") && !img.hasAttribute("data-vision-processing")) {
                   processElement(img);
-                } else {
-                  img.addEventListener("load", () => processElement(img), {
+                } else if (!img.complete && !img.hasAttribute("data-vision-processed") && !img.hasAttribute("data-vision-processing")) {
+                  img.addEventListener("load", () => {
+                    if (!img.hasAttribute("data-vision-processed") && !img.hasAttribute("data-vision-processing")) {
+                      processElement(img);
+                    }
+                  }, {
                     once: true,
                   });
                 }
@@ -313,12 +364,14 @@ export const useVisionCorrection = (): UseVisionCorrectionReturn => {
         subtree: true,
       });
 
-      // Set up periodic processing for dynamic content
-      processingIntervalRef.current = window.setInterval(() => {
-        if (settings.isEnabled) {
-          processExistingContent();
-        }
-      }, 1000); // Process every second
+      // CRITICAL FIX: Remove periodic processing interval that causes repeated image processing
+      // The MutationObserver already handles dynamic content changes
+      // Processing every second causes the "Processing image with CSS filters" message loop
+      // processingIntervalRef.current = window.setInterval(() => {
+      //   if (settings.isEnabled) {
+      //     processExistingContent();
+      //   }
+      // }, 1000); // Process every second - REMOVED to prevent processing loops
     },
     [settings.isEnabled, processElement],
   );

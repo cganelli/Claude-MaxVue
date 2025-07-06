@@ -1,7 +1,18 @@
 // MaxVue Vision Correction Demo Service Worker
 // Provides offline capabilities for PWA installation
 
-const CACHE_NAME = 'maxvue-demo-v1';
+// CRITICAL FIX: Update cache version to force cache invalidation for new deployment
+// This timestamp ensures all cached content is refreshed with new fixes
+const CACHE_VERSION = '2025-07-06-03-25'; // Updated for calibration and camera fixes
+const CACHE_NAME = `maxvue-demo-v${CACHE_VERSION}`;
+
+// Build timestamp for cache busting
+const BUILD_TIMESTAMP = Date.now();
+const VERSION_INFO = {
+  version: CACHE_VERSION,
+  buildTime: BUILD_TIMESTAMP,
+  description: 'Fixed calibration loading and image processing loops'
+};
 const STATIC_CACHE_URLS = [
   '/',
   '/demo',
@@ -45,7 +56,9 @@ self.addEventListener('install', (event) => {
         );
       })
       .then(() => {
-        console.log('MaxVue SW: Installation complete');
+        console.log(`MaxVue SW: Installation complete - Version ${CACHE_VERSION}`);
+        console.log('MaxVue SW: This version includes calibration and camera fixes');
+        // CRITICAL FIX: Force immediate activation to bypass cache
         return self.skipWaiting();
       })
   );
@@ -68,7 +81,9 @@ self.addEventListener('activate', (event) => {
         );
       })
       .then(() => {
-        console.log('MaxVue SW: Activation complete');
+        console.log(`MaxVue SW: Activation complete - Version ${CACHE_VERSION}`);
+        console.log('MaxVue SW: All old caches cleared, serving fresh content');
+        // CRITICAL FIX: Take control of all clients immediately
         return self.clients.claim();
       })
   );
@@ -105,6 +120,25 @@ self.addEventListener('fetch', (event) => {
 // Handle same-origin requests (app shell, static assets)
 async function handleSameOriginRequest(request) {
   try {
+    // CRITICAL FIX: For deployment with fixes, prefer network over cache for JS/CSS
+    const url = new URL(request.url);
+    const isStaticAsset = url.pathname.includes('.js') || url.pathname.includes('.css') || url.pathname.includes('.html');
+    
+    if (isStaticAsset) {
+      // For static assets, try network first to get latest fixes
+      try {
+        const networkResponse = await fetch(request);
+        if (networkResponse.ok) {
+          const cache = await caches.open(CACHE_NAME);
+          cache.put(request, networkResponse.clone());
+          console.log('MaxVue SW: Serving fresh content from network:', request.url);
+          return networkResponse;
+        }
+      } catch (networkError) {
+        console.log('MaxVue SW: Network failed, falling back to cache:', request.url);
+      }
+    }
+    
     const cachedResponse = await caches.match(request);
     if (cachedResponse) {
       console.log('MaxVue SW: Serving from cache:', request.url);
@@ -183,7 +217,33 @@ self.addEventListener('message', (event) => {
   }
   
   if (data && data.type === 'GET_VERSION') {
-    event.ports[0].postMessage({ version: CACHE_NAME });
+    event.ports[0].postMessage({ 
+      version: CACHE_NAME,
+      versionInfo: VERSION_INFO,
+      cacheCleared: true
+    });
+  }
+  
+  // CRITICAL FIX: Force cache refresh message
+  if (data && data.type === 'FORCE_CACHE_REFRESH') {
+    console.log('MaxVue SW: Forcing cache refresh for new deployment');
+    event.waitUntil(
+      caches.keys().then(cacheNames => {
+        return Promise.all(
+          cacheNames.map(cacheName => {
+            console.log('MaxVue SW: Deleting cache:', cacheName);
+            return caches.delete(cacheName);
+          })
+        );
+      }).then(() => {
+        console.log('MaxVue SW: All caches cleared, reloading clients');
+        return self.clients.matchAll().then(clients => {
+          clients.forEach(client => {
+            client.postMessage({ type: 'CACHE_CLEARED' });
+          });
+        });
+      })
+    );
   }
 });
 
@@ -195,4 +255,6 @@ self.addEventListener('sync', (event) => {
   }
 });
 
-console.log('MaxVue SW: Service worker loaded');
+console.log(`MaxVue SW: Service worker loaded - Version ${CACHE_VERSION}`);
+console.log('MaxVue SW: This deployment includes calibration and camera fixes');
+console.log('MaxVue SW: Cache invalidated for fresh content delivery');
