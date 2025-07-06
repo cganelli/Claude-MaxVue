@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Menu, ChevronUp } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import BottomNavigation from '../components/BottomNavigation';
-import Button from '../components/Button';
-import DeleteAccountModal from '../components/DeleteAccountModal';
+import React, { useState } from "react";
+import { ArrowLeft, Menu, ChevronUp } from "lucide-react";
+import { Link } from "react-router-dom";
+import BottomNavigation from "../components/BottomNavigation";
+import Button from "../components/Button";
+import DeleteAccountModal from "../components/DeleteAccountModal";
 
 const NewSettings = () => {
   const [profileExpanded, setProfileExpanded] = useState(true);
@@ -12,7 +12,7 @@ const NewSettings = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const handleDeleteAccount = () => {
-    console.log('Account deleted');
+    console.log("Account deleted");
     setShowDeleteModal(false);
     // Handle account deletion logic here
   };
@@ -23,8 +23,8 @@ const NewSettings = () => {
         <div className="max-w-md mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
-            <Link 
-              to="/welcome" 
+            <Link
+              to="/welcome"
               className="p-2 hover:bg-white/50 rounded-full transition-colors"
             >
               <ArrowLeft className="h-6 w-6 text-gray-600" />
@@ -44,19 +44,15 @@ const NewSettings = () => {
                 className="w-full flex items-center justify-between mb-4"
               >
                 <h3 className="text-xl font-bold text-black">Profile</h3>
-                <ChevronUp 
+                <ChevronUp
                   className={`h-5 w-5 text-gray-600 transition-transform ${
-                    profileExpanded ? 'rotate-0' : 'rotate-180'
-                  }`} 
+                    profileExpanded ? "rotate-0" : "rotate-180"
+                  }`}
                 />
               </button>
-              
+
               {profileExpanded && (
-                <Button
-                  size="lg"
-                  fullWidth
-                  className="rounded-2xl"
-                >
+                <Button size="lg" fullWidth className="rounded-2xl">
                   Edit profile
                 </Button>
               )}
@@ -69,12 +65,14 @@ const NewSettings = () => {
                 <button
                   onClick={() => setVoiceToggleEnabled(!voiceToggleEnabled)}
                   className={`w-12 h-6 rounded-full transition-colors ${
-                    voiceToggleEnabled ? 'bg-gray-600' : 'bg-gray-300'
+                    voiceToggleEnabled ? "bg-gray-600" : "bg-gray-300"
                   }`}
                 >
-                  <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                    voiceToggleEnabled ? 'translate-x-6' : 'translate-x-1'
-                  }`} />
+                  <div
+                    className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                      voiceToggleEnabled ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  />
                 </button>
               </div>
             </div>
@@ -85,7 +83,7 @@ const NewSettings = () => {
                 <h3 className="text-xl font-bold text-black">Brightness</h3>
                 <span className="text-lg font-medium text-gray-600">Free</span>
               </div>
-              
+
               <div className="relative">
                 <input
                   type="range"
@@ -101,14 +99,14 @@ const NewSettings = () => {
                     height: 20px;
                     width: 20px;
                     border-radius: 50%;
-                    background: #6B7280;
+                    background: #6b7280;
                     cursor: pointer;
                   }
                   .slider::-moz-range-thumb {
                     height: 20px;
                     width: 20px;
                     border-radius: 50%;
-                    background: #6B7280;
+                    background: #6b7280;
                     cursor: pointer;
                     border: none;
                   }
@@ -122,12 +120,8 @@ const NewSettings = () => {
                 <h3 className="text-xl font-bold text-black">Subscription</h3>
                 <span className="text-lg font-medium text-gray-600">Free</span>
               </div>
-              
-              <Button
-                size="lg"
-                fullWidth
-                className="rounded-2xl"
-              >
+
+              <Button size="lg" fullWidth className="rounded-2xl">
                 Change Plan
               </Button>
             </div>
@@ -144,9 +138,9 @@ const NewSettings = () => {
           </div>
         </div>
       </div>
-      
+
       <BottomNavigation />
-      
+
       <DeleteAccountModal
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}

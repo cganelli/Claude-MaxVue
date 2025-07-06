@@ -1,25 +1,29 @@
-import React, { useState } from 'react';
-import { MapPin, Phone, Mail, Clock, Calendar, Send } from 'lucide-react';
+import React, { useState } from "react";
+import { MapPin, Phone, Mail, Clock, Calendar, Send } from "lucide-react";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    service: '',
-    message: ''
+    name: "",
+    email: "",
+    phone: "",
+    service: "",
+    message: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle form submission
-    console.log('Form submitted:', formData);
+    console.log("Form submitted:", formData);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
+  ) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -31,15 +35,17 @@ const Contact = () => {
             Schedule Your Consultation
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Take the first step towards clear vision. Our team is ready to help you 
-            explore your options and answer all your questions.
+            Take the first step towards clear vision. Our team is ready to help
+            you explore your options and answer all your questions.
           </p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12">
           <div className="space-y-8">
             <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">Get in Touch</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">
+                Get in Touch
+              </h3>
               <div className="space-y-4">
                 <div className="flex items-center space-x-4">
                   <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -50,7 +56,7 @@ const Contact = () => {
                     <p className="text-gray-600">(555) 123-4567</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-4">
                   <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                     <Mail className="h-6 w-6 text-blue-600" />
@@ -60,33 +66,44 @@ const Contact = () => {
                     <p className="text-gray-600">info@vividvue.com</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-4">
                   <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                     <MapPin className="h-6 w-6 text-blue-600" />
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-900">Location</h4>
-                    <p className="text-gray-600">123 Vision Center Drive<br />San Francisco, CA 94105</p>
+                    <p className="text-gray-600">
+                      123 Vision Center Drive
+                      <br />
+                      San Francisco, CA 94105
+                    </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-4">
                   <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                     <Clock className="h-6 w-6 text-blue-600" />
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-900">Hours</h4>
-                    <p className="text-gray-600">Mon-Fri: 8:00 AM - 6:00 PM<br />Sat: 9:00 AM - 4:00 PM</p>
+                    <p className="text-gray-600">
+                      Mon-Fri: 8:00 AM - 6:00 PM
+                      <br />
+                      Sat: 9:00 AM - 4:00 PM
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl p-8">
-              <h4 className="text-xl font-bold text-gray-900 mb-4">Quick Appointment</h4>
+              <h4 className="text-xl font-bold text-gray-900 mb-4">
+                Quick Appointment
+              </h4>
               <p className="text-gray-600 mb-6">
-                Need immediate assistance? Call us directly or use our online booking system.
+                Need immediate assistance? Call us directly or use our online
+                booking system.
               </p>
               <div className="space-y-3">
                 <button className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2">
@@ -102,11 +119,16 @@ const Contact = () => {
           </div>
 
           <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-lg">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">Send us a Message</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-6">
+              Send us a Message
+            </h3>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Full Name *
                   </label>
                   <input
@@ -121,7 +143,10 @@ const Contact = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="phone"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Phone Number *
                   </label>
                   <input
@@ -138,7 +163,10 @@ const Contact = () => {
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Email Address *
                 </label>
                 <input
@@ -154,7 +182,10 @@ const Contact = () => {
               </div>
 
               <div>
-                <label htmlFor="service" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="service"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Service of Interest
                 </label>
                 <select
@@ -175,7 +206,10 @@ const Contact = () => {
               </div>
 
               <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="message"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Message
                 </label>
                 <textarea

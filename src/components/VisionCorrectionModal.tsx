@@ -1,6 +1,5 @@
-import React from 'react';
-import Modal from './Modal';
-import Button from './Button';
+import React from "react";
+import Modal from "./Modal";
 
 interface VisionCorrectionModalProps {
   isOpen: boolean;
@@ -11,7 +10,7 @@ interface VisionCorrectionModalProps {
 const VisionCorrectionModal: React.FC<VisionCorrectionModalProps> = ({
   isOpen,
   onClose,
-  onConfirm
+  onConfirm,
 }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose}>

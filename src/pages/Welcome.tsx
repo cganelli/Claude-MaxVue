@@ -1,15 +1,16 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import BottomNavigation from '../components/BottomNavigation';
+import React from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import BottomNavigation from "../components/BottomNavigation";
 
 const Welcome = () => {
   const { user } = useAuth();
 
-  console.log('🎯 Welcome page - user:', user);
+  console.log("🎯 Welcome page - user:", user);
 
   // Check if we're in dev mode without auth
-  const isDevMode = import.meta.env.DEV && window.location.pathname === '/welcome-dev';
+  const isDevMode =
+    import.meta.env.DEV && window.location.pathname === "/welcome-dev";
 
   return (
     <div className="min-h-screen bg-[#eaf1fd] font-garamond pb-20">
@@ -17,24 +18,20 @@ const Welcome = () => {
         <div className="max-w-md mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
-            <img 
-              src="/maxvue_logo_transparent_bg.png" 
-              alt="MaxVue" 
+            <img
+              src="/maxvue_logo_transparent_bg.png"
+              alt="MaxVue"
               className="h-24 w-auto mx-auto mb-2"
             />
-            <h1 className="text-3xl font-bold text-black mb-2">
-              Rx Setup
-            </h1>
+            <h1 className="text-3xl font-bold text-black mb-2">Rx Setup</h1>
           </div>
 
           {/* Welcome Message */}
           <div className="text-center mb-12">
             <h2 className="text-2xl font-bold text-black mb-2">
-              Hello {user?.firstName || (isDevMode ? 'Developer' : 'there')},
+              Hello {user?.firstName || (isDevMode ? "Developer" : "there")},
             </h2>
-            <p className="text-2xl font-bold text-black">
-              Bye Bifocals!
-            </p>
+            <p className="text-2xl font-bold text-black">Bye Bifocals!</p>
           </div>
 
           {/* Action Buttons */}
@@ -74,13 +71,16 @@ const Welcome = () => {
           {import.meta.env.DEV && (
             <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-xs text-yellow-800">
-                Debug: {isDevMode ? 'DEV MODE - Auth Bypassed' : `Authenticated, user: ${user ? `${user.firstName} ${user.lastName}` : 'null'}`}
+                Debug:{" "}
+                {isDevMode
+                  ? "DEV MODE - Auth Bypassed"
+                  : `Authenticated, user: ${user ? `${user.firstName} ${user.lastName}` : "null"}`}
               </p>
             </div>
           )}
         </div>
       </div>
-      
+
       <BottomNavigation />
     </div>
   );

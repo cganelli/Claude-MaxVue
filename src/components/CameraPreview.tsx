@@ -1,13 +1,16 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { Camera, CameraOff } from 'lucide-react';
-import VisionCorrectedContent from './VisionCorrectedContent';
+import React, { useRef, useEffect, useState } from "react";
+import { Camera, CameraOff } from "lucide-react";
+import VisionCorrectedContent from "./VisionCorrectedContent";
 
 interface CameraPreviewProps {
   className?: string;
   onCapture?: (imageData: string) => void;
 }
 
-const CameraPreview: React.FC<CameraPreviewProps> = ({ className = '', onCapture }) => {
+const CameraPreview: React.FC<CameraPreviewProps> = ({
+  className = "",
+  onCapture,
+}) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isActive, setIsActive] = useState(false);
@@ -18,22 +21,22 @@ const CameraPreview: React.FC<CameraPreviewProps> = ({ className = '', onCapture
 
     const startCamera = async () => {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ 
-          video: { 
-            facingMode: 'environment',
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: "environment",
             width: { ideal: 1280 },
-            height: { ideal: 720 }
-          } 
+            height: { ideal: 720 },
+          },
         });
-        
+
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           setIsActive(true);
           setError(null);
         }
       } catch (err) {
-        console.error('Error accessing camera:', err);
-        setError('Camera access denied or not available');
+        console.error("Error accessing camera:", err);
+        setError("Camera access denied or not available");
         setIsActive(false);
       }
     };
@@ -42,7 +45,7 @@ const CameraPreview: React.FC<CameraPreviewProps> = ({ className = '', onCapture
 
     return () => {
       if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach((track) => track.stop());
       }
     };
   }, []);
@@ -52,7 +55,7 @@ const CameraPreview: React.FC<CameraPreviewProps> = ({ className = '', onCapture
 
     const canvas = canvasRef.current;
     const video = videoRef.current;
-    const context = canvas.getContext('2d');
+    const context = canvas.getContext("2d");
 
     if (!context) return;
 
@@ -60,7 +63,7 @@ const CameraPreview: React.FC<CameraPreviewProps> = ({ className = '', onCapture
     canvas.height = video.videoHeight;
     context.drawImage(video, 0, 0);
 
-    const imageData = canvas.toDataURL('image/jpeg', 0.8);
+    const imageData = canvas.toDataURL("image/jpeg", 0.8);
     onCapture?.(imageData);
   };
 
@@ -74,7 +77,9 @@ const CameraPreview: React.FC<CameraPreviewProps> = ({ className = '', onCapture
   }
 
   return (
-    <div className={`relative bg-black rounded-2xl overflow-hidden ${className}`}>
+    <div
+      className={`relative bg-black rounded-2xl overflow-hidden ${className}`}
+    >
       {/* Vision Corrected Camera Feed */}
       <VisionCorrectedContent>
         <video

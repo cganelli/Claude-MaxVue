@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Eye, Menu, X, Phone, Calendar } from 'lucide-react';
+import React, { useState } from "react";
+import { Eye, Menu, X, Phone, Calendar } from "lucide-react";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -12,13 +12,38 @@ const Header = () => {
             <Eye className="h-8 w-8 text-blue-600" />
             <span className="text-2xl font-bold text-gray-900">VividVue</span>
           </div>
-          
+
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#home" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Home</a>
-            <a href="#services" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Services</a>
-            <a href="#vision-test" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Vision Test</a>
-            <a href="#about" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">About</a>
-            <a href="#contact" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Contact</a>
+            <a
+              href="#home"
+              className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
+            >
+              Home
+            </a>
+            <a
+              href="#services"
+              className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
+            >
+              Services
+            </a>
+            <a
+              href="#vision-test"
+              className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
+            >
+              Vision Test
+            </a>
+            <a
+              href="#about"
+              className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
+            >
+              About
+            </a>
+            <a
+              href="#contact"
+              className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
+            >
+              Contact
+            </a>
           </nav>
 
           <div className="hidden md:flex items-center space-x-4">
@@ -32,22 +57,51 @@ const Header = () => {
             </button>
           </div>
 
-          <button 
+          <button
             className="md:hidden"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
-            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {isMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
           </button>
         </div>
 
         {isMenuOpen && (
           <div className="md:hidden border-t border-gray-200 py-4">
             <nav className="flex flex-col space-y-4">
-              <a href="#home" className="text-gray-700 hover:text-blue-600 transition-colors">Home</a>
-              <a href="#services" className="text-gray-700 hover:text-blue-600 transition-colors">Services</a>
-              <a href="#vision-test" className="text-gray-700 hover:text-blue-600 transition-colors">Vision Test</a>
-              <a href="#about" className="text-gray-700 hover:text-blue-600 transition-colors">About</a>
-              <a href="#contact" className="text-gray-700 hover:text-blue-600 transition-colors">Contact</a>
+              <a
+                href="#home"
+                className="text-gray-700 hover:text-blue-600 transition-colors"
+              >
+                Home
+              </a>
+              <a
+                href="#services"
+                className="text-gray-700 hover:text-blue-600 transition-colors"
+              >
+                Services
+              </a>
+              <a
+                href="#vision-test"
+                className="text-gray-700 hover:text-blue-600 transition-colors"
+              >
+                Vision Test
+              </a>
+              <a
+                href="#about"
+                className="text-gray-700 hover:text-blue-600 transition-colors"
+              >
+                About
+              </a>
+              <a
+                href="#contact"
+                className="text-gray-700 hover:text-blue-600 transition-colors"
+              >
+                Contact
+              </a>
               <div className="pt-4 border-t border-gray-200">
                 <button className="w-full bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                   Book Appointment

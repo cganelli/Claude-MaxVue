@@ -1,27 +1,32 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import Register from './pages/Register';
-import Login from './pages/Login';
-import NewLogin from './pages/NewLogin';
-import Welcome from './pages/Welcome';
-import Home from './pages/Home';
-import Settings from './pages/Settings';
-import NewSettings from './pages/NewSettings';
-import VisionTest from './pages/VisionTest';
-import VisionCalibration from './pages/VisionCalibration';
-import ApplyPrescription from './pages/ApplyPrescription';
-import SelectPlan from './pages/SelectPlan';
-import NewSelectPlan from './pages/NewSelectPlan';
-import More from './pages/More';
-import NewMore from './pages/NewMore';
-import Homepage from './pages/Homepage';
-import ContentDemo from './pages/ContentDemo';
-import LandingPage from './pages/LandingPage';
-import FAQPage from './pages/FAQPage';
-import PrivacyPage from './pages/PrivacyPage';
-import TermsPage from './pages/TermsPage';
-import { supabase } from './lib/supabase';
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import Register from "./pages/Register";
+import Login from "./pages/Login";
+import NewLogin from "./pages/NewLogin";
+import Welcome from "./pages/Welcome";
+import Home from "./pages/Home";
+import Settings from "./pages/Settings";
+import NewSettings from "./pages/NewSettings";
+import VisionTest from "./pages/VisionTest";
+import VisionCalibration from "./pages/VisionCalibration";
+import ApplyPrescription from "./pages/ApplyPrescription";
+import SelectPlan from "./pages/SelectPlan";
+import NewSelectPlan from "./pages/NewSelectPlan";
+import More from "./pages/More";
+import NewMore from "./pages/NewMore";
+import Homepage from "./pages/Homepage";
+import ContentDemo from "./pages/ContentDemo";
+import LandingPage from "./pages/LandingPage";
+import FAQPage from "./pages/FAQPage";
+import PrivacyPage from "./pages/PrivacyPage";
+import TermsPage from "./pages/TermsPage";
+import { supabase } from "./lib/supabase";
 
 const LoadingSpinner = () => (
   <div className="min-h-screen bg-[#eaf1fd] flex items-center justify-center">
@@ -35,45 +40,49 @@ const LoadingSpinner = () => (
 // Dev-only session reset button
 const DevResetButton = () => {
   const isDev = import.meta.env.DEV;
-  
+
   if (!isDev) return null;
-  
+
   const handleReset = () => {
-    console.log('🔄 DEV: Starting session reset...');
-    
+    console.log("🔄 DEV: Starting session reset...");
+
     // Simple, synchronous reset approach
     try {
       // 1. Clear localStorage
       localStorage.clear();
-      console.log('✅ localStorage cleared');
+      console.log("✅ localStorage cleared");
     } catch (e) {
-      console.log('⚠️ localStorage clear failed:', e);
+      console.log("⚠️ localStorage clear failed:", e);
     }
-    
+
     try {
       // 2. Clear sessionStorage
       sessionStorage.clear();
-      console.log('✅ sessionStorage cleared');
+      console.log("✅ sessionStorage cleared");
     } catch (e) {
-      console.log('⚠️ sessionStorage clear failed:', e);
+      console.log("⚠️ sessionStorage clear failed:", e);
     }
 
     try {
       // 3. Clear cookies
-      document.cookie.split(";").forEach(function(c) { 
-        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+      document.cookie.split(";").forEach(function (c) {
+        document.cookie = c
+          .replace(/^ +/, "")
+          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
       });
-      console.log('✅ Cookies cleared');
+      console.log("✅ Cookies cleared");
     } catch (e) {
-      console.log('⚠️ Cookie clear failed:', e);
+      console.log("⚠️ Cookie clear failed:", e);
     }
 
     // 4. Sign out from Supabase (fire and forget)
-    supabase.auth.signOut().catch(e => console.log('⚠️ Supabase signout failed:', e));
-    
+    supabase.auth
+      .signOut()
+      .catch((e) => console.log("⚠️ Supabase signout failed:", e));
+
     // 5. Force immediate navigation to register page
-    console.log('🔄 Redirecting to register page...');
-    window.location.href = '/register';
+    console.log("🔄 Redirecting to register page...");
+    window.location.href = "/register";
   };
 
   return (
@@ -92,12 +101,12 @@ const DevResetButton = () => {
 // Dev-only bypass auth button
 const DevBypassAuthButton = () => {
   const isDev = import.meta.env.DEV;
-  
+
   if (!isDev) return null;
-  
+
   const handleBypass = () => {
     // Navigate directly to welcome page
-    window.location.href = '/welcome-dev';
+    window.location.href = "/welcome-dev";
   };
 
   return (
@@ -115,11 +124,15 @@ const DevBypassAuthButton = () => {
 
 function AppContent() {
   const { isLoading, isAuthenticated, user } = useAuth();
-  
-  console.log('🎯 App routing state:', { isLoading, isAuthenticated, hasUser: !!user });
-  
+
+  console.log("🎯 App routing state:", {
+    isLoading,
+    isAuthenticated,
+    hasUser: !!user,
+  });
+
   // ✅ DEV ONLY: Check if we're accessing the dev welcome route
-  if (import.meta.env.DEV && window.location.pathname === '/welcome-dev') {
+  if (import.meta.env.DEV && window.location.pathname === "/welcome-dev") {
     return (
       <div className="min-h-screen bg-[#eaf1fd]">
         <Routes>
@@ -135,6 +148,7 @@ function AppContent() {
           <Route path="/new-more" element={<NewMore />} />
           <Route path="/homepage" element={<Homepage />} />
           <Route path="/content-demo" element={<ContentDemo />} />
+          <Route path="/demo" element={<ContentDemo />} />
           <Route path="/new-login" element={<NewLogin />} />
           <Route path="*" element={<Navigate to="/welcome-dev" replace />} />
         </Routes>
@@ -147,7 +161,7 @@ function AppContent() {
       </div>
     );
   }
-  
+
   // ✅ 1. Show loading screen while isLoading is true (with timeout protection)
   if (isLoading) {
     return (
@@ -161,12 +175,15 @@ function AppContent() {
 
   // ✅ 2. If authenticated (regardless of user profile status), show protected routes
   if (isAuthenticated) {
-    console.log('✅ User authenticated, showing protected routes');
+    console.log("✅ User authenticated, showing protected routes");
     return (
       <div className="min-h-screen bg-[#eaf1fd]">
         <Routes>
           <Route path="/" element={<Navigate to="/welcome" replace />} />
-          <Route path="/register" element={<Navigate to="/welcome" replace />} />
+          <Route
+            path="/register"
+            element={<Navigate to="/welcome" replace />}
+          />
           <Route path="/login" element={<Navigate to="/welcome" replace />} />
           <Route path="/welcome" element={<Welcome />} />
           <Route path="/home" element={<Home />} />
@@ -181,6 +198,7 @@ function AppContent() {
           <Route path="/new-more" element={<NewMore />} />
           <Route path="/homepage" element={<Homepage />} />
           <Route path="/content-demo" element={<ContentDemo />} />
+          <Route path="/demo" element={<ContentDemo />} />
           <Route path="/new-login" element={<NewLogin />} />
           <Route path="/faq" element={<FAQPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
@@ -193,7 +211,7 @@ function AppContent() {
   }
 
   // ✅ 3. If not authenticated, show public routes (including landing page and legal pages)
-  console.log('👤 User not authenticated, showing public routes');
+  console.log("👤 User not authenticated, showing public routes");
   return (
     <div className="min-h-screen bg-[#eaf1fd]">
       <Routes>
@@ -204,6 +222,7 @@ function AppContent() {
         <Route path="/new-select-plan" element={<NewSelectPlan />} />
         <Route path="/vision-calibration" element={<VisionCalibration />} />
         <Route path="/content-demo" element={<ContentDemo />} />
+        <Route path="/demo" element={<ContentDemo />} />
         <Route path="/homepage" element={<Homepage />} />
         <Route path="/faq" element={<FAQPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />

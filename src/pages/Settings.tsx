@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { ArrowLeft, ChevronUp, ChevronDown } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import BottomNavigation from '../components/BottomNavigation';
-import Button from '../components/Button';
+import React, { useState } from "react";
+import { ArrowLeft, ChevronUp, ChevronDown } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import BottomNavigation from "../components/BottomNavigation";
+import Button from "../components/Button";
 
 const Settings = () => {
   const [profileExpanded, setProfileExpanded] = useState(false);
@@ -13,20 +13,20 @@ const Settings = () => {
 
   // Form state for profile editing
   const [profileData, setProfileData] = useState({
-    firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
-    email: user?.email || ''
+    firstName: user?.firstName || "",
+    lastName: user?.lastName || "",
+    email: user?.email || "",
   });
 
   const handleProfileInputChange = (field: string, value: string) => {
-    setProfileData(prev => ({
+    setProfileData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   const handleSaveProfile = () => {
-    console.log('Saving profile:', profileData);
+    console.log("Saving profile:", profileData);
     // Handle profile save logic here
   };
 
@@ -36,8 +36,8 @@ const Settings = () => {
         <div className="max-w-md mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
-            <Link 
-              to="/welcome" 
+            <Link
+              to="/welcome"
               className="p-2 hover:bg-white/50 rounded-full transition-colors"
             >
               <ArrowLeft className="h-6 w-6 text-gray-600" />
@@ -61,7 +61,7 @@ const Settings = () => {
                   <ChevronDown className="h-5 w-5 text-gray-600" />
                 )}
               </button>
-              
+
               {profileExpanded ? (
                 <div className="space-y-4">
                   {/* First Name */}
@@ -69,34 +69,40 @@ const Settings = () => {
                     <input
                       type="text"
                       value={profileData.firstName}
-                      onChange={(e) => handleProfileInputChange('firstName', e.target.value)}
+                      onChange={(e) =>
+                        handleProfileInputChange("firstName", e.target.value)
+                      }
                       className="w-full px-6 py-4 border-2 border-gray-300 rounded-full text-lg placeholder-gray-500 focus:outline-none focus:border-dark-blue-900 transition-colors bg-white"
                       placeholder="First name"
                     />
                   </div>
-                  
+
                   {/* Last Name */}
                   <div>
                     <input
                       type="text"
                       value={profileData.lastName}
-                      onChange={(e) => handleProfileInputChange('lastName', e.target.value)}
+                      onChange={(e) =>
+                        handleProfileInputChange("lastName", e.target.value)
+                      }
                       className="w-full px-6 py-4 border-2 border-gray-300 rounded-full text-lg placeholder-gray-500 focus:outline-none focus:border-dark-blue-900 transition-colors bg-white"
                       placeholder="Last name"
                     />
                   </div>
-                  
+
                   {/* Email */}
                   <div>
                     <input
                       type="email"
                       value={profileData.email}
-                      onChange={(e) => handleProfileInputChange('email', e.target.value)}
+                      onChange={(e) =>
+                        handleProfileInputChange("email", e.target.value)
+                      }
                       className="w-full px-6 py-4 border-2 border-gray-300 rounded-full text-lg placeholder-gray-500 focus:outline-none focus:border-dark-blue-900 transition-colors bg-white"
                       placeholder="Email address"
                     />
                   </div>
-                  
+
                   {/* Save Button */}
                   <Button
                     onClick={handleSaveProfile}
@@ -126,12 +132,14 @@ const Settings = () => {
                 <button
                   onClick={() => setVoiceToggleEnabled(!voiceToggleEnabled)}
                   className={`relative w-12 h-6 rounded-full transition-colors ${
-                    voiceToggleEnabled ? 'bg-gray-600' : 'bg-gray-300'
+                    voiceToggleEnabled ? "bg-gray-600" : "bg-gray-300"
                   }`}
                 >
-                  <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform ${
-                    voiceToggleEnabled ? 'translate-x-6' : 'translate-x-0.5'
-                  }`} />
+                  <div
+                    className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform ${
+                      voiceToggleEnabled ? "translate-x-6" : "translate-x-0.5"
+                    }`}
+                  />
                 </button>
               </div>
             </div>
@@ -141,7 +149,7 @@ const Settings = () => {
               <div className="mb-4">
                 <h3 className="text-xl font-bold text-black">Brightness</h3>
               </div>
-              
+
               <div className="relative">
                 <input
                   type="range"
@@ -157,14 +165,14 @@ const Settings = () => {
                     height: 20px;
                     width: 20px;
                     border-radius: 50%;
-                    background: #6B7280;
+                    background: #6b7280;
                     cursor: pointer;
                   }
                   .slider::-moz-range-thumb {
                     height: 20px;
                     width: 20px;
                     border-radius: 50%;
-                    background: #6B7280;
+                    background: #6b7280;
                     cursor: pointer;
                     border: none;
                   }
@@ -178,13 +186,9 @@ const Settings = () => {
                 <h3 className="text-xl font-bold text-black">Subscription</h3>
                 <span className="text-lg font-medium text-gray-600">Free</span>
               </div>
-              
+
               <Link to="/select-plan">
-                <Button
-                  size="lg"
-                  fullWidth
-                  className="rounded-2xl"
-                >
+                <Button size="lg" fullWidth className="rounded-2xl">
                   Change Plan
                 </Button>
               </Link>
@@ -202,7 +206,7 @@ const Settings = () => {
           </div>
         </div>
       </div>
-      
+
       <BottomNavigation />
     </div>
   );

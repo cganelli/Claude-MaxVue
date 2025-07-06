@@ -1,28 +1,28 @@
-import React, { useState } from 'react';
-import { Check, X } from 'lucide-react';
-import Button from '../components/Button';
-import PlanUpgradeModal from '../components/PlanUpgradeModal';
+import React, { useState } from "react";
+import { Check, X } from "lucide-react";
+import Button from "../components/Button";
+import PlanUpgradeModal from "../components/PlanUpgradeModal";
 
 const NewSelectPlan = () => {
-  const [selectedPlan, setSelectedPlan] = useState('free');
+  const [selectedPlan, setSelectedPlan] = useState("free");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const features = [
-    { name: 'Manual Rx Input', free: true, pro: true },
-    { name: 'One-Tap Correction', free: true, pro: true },
-    { name: 'Email/Web/Camera Filters', free: true, pro: true },
-    { name: 'Simulated Eye Test', free: true, pro: true },
-    { name: 'Profile Saving & Switching', free: false, pro: true },
-    { name: 'Photo Gallery Correction', free: false, pro: true },
-    { name: 'Day/Night Auto Brightness', free: false, pro: true },
-    { name: 'App-Specific Overrides', free: false, pro: true }
+    { name: "Manual Rx Input", free: true, pro: true },
+    { name: "One-Tap Correction", free: true, pro: true },
+    { name: "Email/Web/Camera Filters", free: true, pro: true },
+    { name: "Simulated Eye Test", free: true, pro: true },
+    { name: "Profile Saving & Switching", free: false, pro: true },
+    { name: "Photo Gallery Correction", free: false, pro: true },
+    { name: "Day/Night Auto Brightness", free: false, pro: true },
+    { name: "App-Specific Overrides", free: false, pro: true },
   ];
 
   const handleContinue = () => {
-    if (selectedPlan === 'pro') {
+    if (selectedPlan === "pro") {
       setShowUpgradeModal(true);
     } else {
-      console.log('Continuing with free plan');
+      console.log("Continuing with free plan");
     }
   };
 
@@ -38,21 +38,21 @@ const NewSelectPlan = () => {
         <div className="mb-8">
           <div className="bg-gray-100 rounded-2xl p-1 flex">
             <button
-              onClick={() => setSelectedPlan('free')}
+              onClick={() => setSelectedPlan("free")}
               className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-colors ${
-                selectedPlan === 'free'
-                  ? 'bg-gray-600 text-white'
-                  : 'text-gray-600 hover:text-gray-900'
+                selectedPlan === "free"
+                  ? "bg-gray-600 text-white"
+                  : "text-gray-600 hover:text-gray-900"
               }`}
             >
               Free
             </button>
             <button
-              onClick={() => setSelectedPlan('pro')}
+              onClick={() => setSelectedPlan("pro")}
               className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-colors ${
-                selectedPlan === 'pro'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
+                selectedPlan === "pro"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-600 hover:text-gray-900"
               }`}
             >
               <div>
@@ -70,12 +70,16 @@ const NewSelectPlan = () => {
             <h3 className="text-lg font-bold text-black">Feature</h3>
             <h3 className="text-lg font-bold text-black">Check</h3>
           </div>
-          
+
           <div className="space-y-3">
             {features.map((feature, index) => {
-              const isIncluded = selectedPlan === 'free' ? feature.free : feature.pro;
+              const isIncluded =
+                selectedPlan === "free" ? feature.free : feature.pro;
               return (
-                <div key={index} className="flex justify-between items-center py-2">
+                <div
+                  key={index}
+                  className="flex justify-between items-center py-2"
+                >
                   <span className="text-gray-700 text-sm">{feature.name}</span>
                   <div className="w-6 h-6 rounded bg-gray-600 flex items-center justify-center">
                     {isIncluded ? (
@@ -100,7 +104,7 @@ const NewSelectPlan = () => {
           Continue
         </Button>
       </div>
-      
+
       <PlanUpgradeModal
         isOpen={showUpgradeModal}
         onClose={() => setShowUpgradeModal(false)}

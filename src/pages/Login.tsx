@@ -1,17 +1,17 @@
-import React, { useState } from 'react';
-import { Loader2 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import Button from '../components/Button';
-import { supabase } from '../lib/supabase';
+import React, { useState } from "react";
+import { Loader2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+// Button component not used in this file
+import { supabase } from "../lib/supabase";
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    email: "",
+    password: "",
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -19,25 +19,25 @@ const Login = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
-    setError('');
+    setError("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
       const success = await login(formData.email, formData.password);
       if (success) {
-        navigate('/welcome');
+        navigate("/welcome");
       } else {
-        setError('Invalid email or password. Please try again.');
+        setError("Invalid email or password. Please try again.");
       }
-    } catch (err) {
-      setError('An error occurred. Please try again.');
+    } catch {
+      setError("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -45,23 +45,26 @@ const Login = () => {
 
   const handleForgotPassword = async () => {
     if (!formData.email) {
-      setError('Please enter your email address first.');
+      setError("Please enter your email address first.");
       return;
     }
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        formData.email,
+        {
+          redirectTo: `${window.location.origin}/reset-password`,
+        },
+      );
 
       if (error) {
-        setError('Error sending reset email. Please try again.');
+        setError("Error sending reset email. Please try again.");
       } else {
         setResetEmailSent(true);
-        setError('');
+        setError("");
       }
-    } catch (err) {
-      setError('Error sending reset email. Please try again.');
+    } catch {
+      setError("Error sending reset email. Please try again.");
     }
   };
 
@@ -70,9 +73,9 @@ const Login = () => {
       <div className="max-w-sm w-full">
         {/* Logo */}
         <div className="text-center mb-8">
-          <img 
-            src="/maxvue_logo_transparent_bg.png" 
-            alt="MaxVue" 
+          <img
+            src="/maxvue_logo_transparent_bg.png"
+            alt="MaxVue"
             className="h-24 w-auto mx-auto mb-2"
           />
           <h2 className="text-3xl font-bold text-black">Ready, Set, See!</h2>
@@ -123,7 +126,7 @@ const Login = () => {
             className="w-full bg-vivid-blue-500 text-white py-4 px-6 rounded-2xl text-lg font-semibold hover:bg-dark-blue-900 active:bg-dark-blue-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
           >
             {isLoading && <Loader2 className="h-5 w-5 animate-spin" />}
-            <span>{isLoading ? 'Logging in...' : 'Log in'}</span>
+            <span>{isLoading ? "Logging in..." : "Log in"}</span>
           </button>
         </form>
 
@@ -139,8 +142,8 @@ const Login = () => {
 
         <div className="mt-6 text-center">
           <p className="text-gray-900 text-lg">
-            Don't have an account?{' '}
-            <Link 
+            Don't have an account?{" "}
+            <Link
               to="/register"
               className="text-gray-600 underline hover:text-gray-800 transition-colors"
             >

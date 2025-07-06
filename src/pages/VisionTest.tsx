@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import BottomNavigation from '../components/BottomNavigation';
-import Button from '../components/Button';
+import React, { useState } from "react";
+import { ArrowLeft } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import BottomNavigation from "../components/BottomNavigation";
+import Button from "../components/Button";
 
 const VisionTest = () => {
   const [sliderValue, setSliderValue] = useState(50);
@@ -13,9 +13,9 @@ const VisionTest = () => {
   };
 
   const handleConfirmCalibration = () => {
-    console.log('Initial calibration confirmed with value:', sliderValue);
+    console.log("Initial calibration confirmed with value:", sliderValue);
     // Navigate to the detailed vision calibration screen
-    navigate('/vision-calibration');
+    navigate("/vision-calibration");
   };
 
   return (
@@ -33,7 +33,8 @@ const VisionTest = () => {
           {/* Instructions */}
           <div className="mb-4">
             <p className="text-xl text-gray-900 leading-relaxed">
-              Please remove your glasses then move the slider until the sentence below is in focus.
+              Please remove your glasses then move the slider until the sentence
+              below is in focus.
             </p>
           </div>
 
@@ -41,14 +42,15 @@ const VisionTest = () => {
           <div className="text-center mb-8">
             <div className="text-black text-xl leading-relaxed">
               <p className="mb-4">
-                We do not see<br />
-                things as they are,<br />
-                we see them as<br />
+                We do not see
+                <br />
+                things as they are,
+                <br />
+                we see them as
+                <br />
                 we are.
               </p>
-              <p className="text-lg">
-                – Anais Nin
-              </p>
+              <p className="text-lg">– Anais Nin</p>
             </div>
           </div>
 
@@ -62,7 +64,7 @@ const VisionTest = () => {
                 value={sliderValue}
                 onChange={handleSliderChange}
                 className="w-full h-4 rounded-full appearance-none cursor-pointer slider"
-                style={{ background: '#1D4262' }}
+                style={{ background: "#1D4262" }}
               />
               <style jsx>{`
                 .slider::-webkit-slider-thumb {
@@ -70,32 +72,32 @@ const VisionTest = () => {
                   height: 32px;
                   width: 32px;
                   border-radius: 50%;
-                  background: #3399FF;
+                  background: #3399ff;
                   cursor: pointer;
-                  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+                  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
                 }
                 .slider::-moz-range-thumb {
                   height: 32px;
                   width: 32px;
                   border-radius: 50%;
-                  background: #3399FF;
+                  background: #3399ff;
                   cursor: pointer;
                   border: none;
-                  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+                  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
                 }
                 .slider::-webkit-slider-track {
                   height: 16px;
                   border-radius: 8px;
-                  background: #1D4262;
+                  background: #1d4262;
                 }
                 .slider::-moz-range-track {
                   height: 16px;
                   border-radius: 8px;
-                  background: #1D4262;
+                  background: #1d4262;
                   border: none;
                 }
                 .slider {
-                  background: #1D4262 !important;
+                  background: #1d4262 !important;
                 }
               `}</style>
             </div>
@@ -114,7 +116,7 @@ const VisionTest = () => {
           </div>
         </div>
       </div>
-      
+
       <BottomNavigation />
     </div>
   );

@@ -1,8 +1,8 @@
-import React from 'react';
-import { TestTube, Glasses, Settings, LogOut } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import BottomNavigation from '../components/BottomNavigation';
+import React from "react";
+import { TestTube, Glasses, Settings, LogOut } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import BottomNavigation from "../components/BottomNavigation";
 
 const Home = () => {
   const { user, logout } = useAuth();
@@ -14,9 +14,9 @@ const Home = () => {
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center space-x-2">
-              <img 
-                src="/maxvue_logo_transparent_bg.png" 
-                alt="MaxVue" 
+              <img
+                src="/maxvue_logo_transparent_bg.png"
+                alt="MaxVue"
                 className="h-18 w-auto"
               />
             </div>
@@ -57,8 +57,12 @@ const Home = () => {
                   <TestTube className="h-8 w-8 text-vivid-blue-500" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-xl font-bold text-black mb-1">Run Vision Test</h3>
-                  <p className="text-gray-600">Check your visual acuity and eye health</p>
+                  <h3 className="text-xl font-bold text-black mb-1">
+                    Run Vision Test
+                  </h3>
+                  <p className="text-gray-600">
+                    Check your visual acuity and eye health
+                  </p>
                 </div>
               </div>
             </Link>
@@ -72,8 +76,12 @@ const Home = () => {
                   <Glasses className="h-8 w-8 text-green-600" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-xl font-bold text-black mb-1">Apply My Prescription</h3>
-                  <p className="text-gray-600">Update your current prescription details</p>
+                  <h3 className="text-xl font-bold text-black mb-1">
+                    Apply My Prescription
+                  </h3>
+                  <p className="text-gray-600">
+                    Update your current prescription details
+                  </p>
                 </div>
               </div>
             </Link>
@@ -95,7 +103,7 @@ const Home = () => {
           </div>
         </div>
       </div>
-      
+
       <BottomNavigation />
     </div>
   );

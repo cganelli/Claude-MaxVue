@@ -1,9 +1,12 @@
-import React from 'react';
-import { ArrowRight, CheckCircle, Star } from 'lucide-react';
+import React from "react";
+import { ArrowRight, CheckCircle, Star } from "lucide-react";
 
 const Hero = () => {
   return (
-    <section id="home" className="pt-20 bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center">
+    <section
+      id="home"
+      className="pt-20 bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-8">
@@ -11,26 +14,31 @@ const Hero = () => {
               <Star className="h-5 w-5 fill-current" />
               <span className="font-semibold">Trusted by 50,000+ patients</span>
             </div>
-            
+
             <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
               Clear Vision,
               <span className="text-blue-600 block">Brighter Future</span>
             </h1>
-            
+
             <p className="text-xl text-gray-600 leading-relaxed">
-              Experience the latest in vision correction technology with personalized care 
-              from our expert team. From comprehensive eye exams to advanced surgical procedures, 
-              we're here to help you see the world clearly.
+              Experience the latest in vision correction technology with
+              personalized care from our expert team. From comprehensive eye
+              exams to advanced surgical procedures, we're here to help you see
+              the world clearly.
             </p>
 
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
                 <CheckCircle className="h-5 w-5 text-green-500" />
-                <span className="text-gray-700">FDA-approved LASIK technology</span>
+                <span className="text-gray-700">
+                  FDA-approved LASIK technology
+                </span>
               </div>
               <div className="flex items-center space-x-3">
                 <CheckCircle className="h-5 w-5 text-green-500" />
-                <span className="text-gray-700">Board-certified ophthalmologists</span>
+                <span className="text-gray-700">
+                  Board-certified ophthalmologists
+                </span>
               </div>
               <div className="flex items-center space-x-3">
                 <CheckCircle className="h-5 w-5 text-green-500" />
@@ -63,7 +71,7 @@ const Hero = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="absolute -bottom-4 -left-4 bg-green-500 text-white p-4 rounded-lg shadow-lg">
               <div className="flex items-center space-x-2">
                 <Star className="h-5 w-5 fill-current" />

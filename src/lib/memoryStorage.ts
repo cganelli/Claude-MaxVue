@@ -21,19 +21,19 @@ export const memoryStorage = {
   },
   clear: () => {
     memoryStore = {};
-    console.log('🧠 MEMORY STORAGE CLEAR');
+    console.log("🧠 MEMORY STORAGE CLEAR");
   },
   // Debug methods
   getAllKeys: () => Object.keys(memoryStore),
   getSize: () => Object.keys(memoryStore).length,
   // Direct access to store for debugging
-  _getStore: () => memoryStore
+  _getStore: () => memoryStore,
 };
 
 // Hybrid storage that tries localStorage first, falls back to memory
 export class HybridStorage {
   private useMemory: boolean = false;
-  private storageType: 'localStorage' | 'memory' = 'localStorage';
+  private storageType: "localStorage" | "memory" = "localStorage";
 
   constructor() {
     this.detectStorageCapability();
@@ -41,23 +41,25 @@ export class HybridStorage {
 
   private detectStorageCapability(): void {
     try {
-      const testKey = 'supabase-storage-test-' + Date.now();
-      localStorage.setItem(testKey, 'test');
+      const testKey = "supabase-storage-test-" + Date.now();
+      localStorage.setItem(testKey, "test");
       const retrieved = localStorage.getItem(testKey);
       localStorage.removeItem(testKey);
-      
-      if (retrieved === 'test') {
-        console.log('🔄 HYBRID STORAGE: localStorage available and working');
+
+      if (retrieved === "test") {
+        console.log("🔄 HYBRID STORAGE: localStorage available and working");
         this.useMemory = false;
-        this.storageType = 'localStorage';
+        this.storageType = "localStorage";
       } else {
-        throw new Error('localStorage test failed');
+        throw new Error("localStorage test failed");
       }
     } catch (error) {
-      console.log('🔄 HYBRID STORAGE: localStorage not available, using memory storage');
-      console.log('🔄 HYBRID STORAGE ERROR:', error);
+      console.log(
+        "🔄 HYBRID STORAGE: localStorage not available, using memory storage",
+      );
+      console.log("🔄 HYBRID STORAGE ERROR:", error);
       this.useMemory = true;
-      this.storageType = 'memory';
+      this.storageType = "memory";
     }
   }
 
@@ -66,15 +68,19 @@ export class HybridStorage {
     if (!this.useMemory) {
       try {
         const value = localStorage.getItem(key);
-        console.log(`🔄 HYBRID STORAGE GET (localStorage): ${key} = ${value ? 'Present' : 'null'}`);
+        console.log(
+          `🔄 HYBRID STORAGE GET (localStorage): ${key} = ${value ? "Present" : "null"}`,
+        );
         return value;
-      } catch (error) {
-        console.log(`🔄 HYBRID STORAGE GET FAILED (localStorage): ${key}, switching to memory`);
+      } catch {
+        console.log(
+          `🔄 HYBRID STORAGE GET FAILED (localStorage): ${key}, switching to memory`,
+        );
         this.useMemory = true;
-        this.storageType = 'memory';
+        this.storageType = "memory";
       }
     }
-    
+
     // Use memory storage
     return memoryStorage.getItem(key);
   }
@@ -83,14 +89,18 @@ export class HybridStorage {
     // Synchronous fallback - try localStorage first, then memory
     if (!this.useMemory) {
       try {
-        console.log(`🔄 HYBRID STORAGE SET (localStorage): ${key} = ${value.slice(0, 30)}...`);
+        console.log(
+          `🔄 HYBRID STORAGE SET (localStorage): ${key} = ${value.slice(0, 30)}...`,
+        );
         localStorage.setItem(key, value);
         console.log(`🔄 HYBRID STORAGE SET SUCCESS (localStorage): ${key}`);
         return;
-      } catch (error) {
-        console.log(`🔄 HYBRID STORAGE SET FAILED (localStorage): ${key}, switching to memory`);
+      } catch {
+        console.log(
+          `🔄 HYBRID STORAGE SET FAILED (localStorage): ${key}, switching to memory`,
+        );
         this.useMemory = true;
-        this.storageType = 'memory';
+        this.storageType = "memory";
       }
     }
 
@@ -105,10 +115,12 @@ export class HybridStorage {
         console.log(`🔄 HYBRID STORAGE REMOVE (localStorage): ${key}`);
         localStorage.removeItem(key);
         return;
-      } catch (error) {
-        console.log(`🔄 HYBRID STORAGE REMOVE FAILED (localStorage): ${key}, switching to memory`);
+      } catch {
+        console.log(
+          `🔄 HYBRID STORAGE REMOVE FAILED (localStorage): ${key}, switching to memory`,
+        );
         this.useMemory = true;
-        this.storageType = 'memory';
+        this.storageType = "memory";
       }
     }
 
@@ -121,10 +133,12 @@ export class HybridStorage {
       try {
         localStorage.clear();
         return;
-      } catch (error) {
-        console.log('🔄 HYBRID STORAGE CLEAR FAILED (localStorage), switching to memory');
+      } catch {
+        console.log(
+          "🔄 HYBRID STORAGE CLEAR FAILED (localStorage), switching to memory",
+        );
         this.useMemory = true;
-        this.storageType = 'memory';
+        this.storageType = "memory";
       }
     }
 
@@ -136,36 +150,36 @@ export class HybridStorage {
     return this.useMemory;
   }
 
-  getStorageType(): 'localStorage' | 'memory' {
+  getStorageType(): "localStorage" | "memory" {
     return this.storageType;
   }
 
   getStorageInfo() {
     if (this.useMemory) {
       return {
-        type: 'memory' as const,
+        type: "memory" as const,
         keys: memoryStorage.getAllKeys(),
         size: memoryStorage.getSize(),
-        store: memoryStorage._getStore()
+        store: memoryStorage._getStore(),
       };
     } else {
       try {
         return {
-          type: 'localStorage' as const,
+          type: "localStorage" as const,
           keys: Object.keys(localStorage),
           size: localStorage.length,
-          available: true
+          available: true,
         };
-      } catch (error) {
+      } catch {
         // If we can't even read localStorage, switch to memory
         this.useMemory = true;
-        this.storageType = 'memory';
+        this.storageType = "memory";
         return {
-          type: 'memory' as const,
+          type: "memory" as const,
           keys: memoryStorage.getAllKeys(),
           size: memoryStorage.getSize(),
           store: memoryStorage._getStore(),
-          fallbackReason: 'localStorage read failed'
+          fallbackReason: "localStorage read failed",
         };
       }
     }

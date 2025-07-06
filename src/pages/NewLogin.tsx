@@ -1,17 +1,17 @@
-import React, { useState } from 'react';
-import { Loader2 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import Button from '../components/Button';
-import ForgotPasswordModal from '../components/ForgotPasswordModal';
+import React, { useState } from "react";
+import { Loader2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+// Button component not used in this file
+import ForgotPasswordModal from "../components/ForgotPasswordModal";
 
 const NewLogin = () => {
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    email: "",
+    password: "",
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -19,32 +19,32 @@ const NewLogin = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
-    setError('');
+    setError("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
       const success = await login(formData.email, formData.password);
       if (success) {
-        navigate('/welcome');
+        navigate("/welcome");
       } else {
-        setError('Invalid email or password. Please try again.');
+        setError("Invalid email or password. Please try again.");
       }
-    } catch (err) {
-      setError('An error occurred. Please try again.');
+    } catch {
+      setError("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleForgotPassword = (email: string) => {
-    console.log('Reset password for:', email);
+    console.log("Reset password for:", email);
     setShowForgotPassword(false);
     // Handle password reset logic here
   };
@@ -54,9 +54,9 @@ const NewLogin = () => {
       <div className="max-w-sm w-full">
         {/* Header */}
         <div className="text-center mb-8">
-          <img 
-            src="/maxvue_logo_transparent_bg.png" 
-            alt="MaxVue" 
+          <img
+            src="/maxvue_logo_transparent_bg.png"
+            alt="MaxVue"
             className="h-16 w-auto mx-auto mb-8"
           />
           <h2 className="text-3xl font-bold text-black mb-8">Login</h2>
@@ -99,14 +99,14 @@ const NewLogin = () => {
             className="w-full bg-gray-600 text-white py-4 px-6 rounded-2xl text-lg font-semibold hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
           >
             {isLoading && <Loader2 className="h-5 w-5 animate-spin" />}
-            <span>{isLoading ? 'Logging in...' : 'Log in'}</span>
+            <span>{isLoading ? "Logging in..." : "Log in"}</span>
           </button>
         </form>
 
         <div className="mt-8 text-center">
           <p className="text-gray-900 text-lg">
-            Don't have an account?{' '}
-            <Link 
+            Don't have an account?{" "}
+            <Link
               to="/register"
               className="text-gray-600 underline hover:text-gray-800 transition-colors"
             >
@@ -115,7 +115,7 @@ const NewLogin = () => {
           </p>
         </div>
       </div>
-      
+
       <ForgotPasswordModal
         isOpen={showForgotPassword}
         onClose={() => setShowForgotPassword(false)}

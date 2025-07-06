@@ -1,5 +1,5 @@
-import React from 'react';
-import { X } from 'lucide-react';
+import React from "react";
+import { X } from "lucide-react";
 
 interface ModalProps {
   isOpen: boolean;
@@ -9,25 +9,27 @@ interface ModalProps {
   className?: string;
 }
 
-const Modal: React.FC<ModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  children, 
+const Modal: React.FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  children,
   showCloseButton = false,
-  className = '' 
+  className = "",
 }) => {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-black bg-opacity-50"
         onClick={onClose}
       />
-      
+
       {/* Modal Content - Updated to use Very Light Blue background */}
-      <div className={`relative bg-[#eaf1fd] rounded-3xl shadow-2xl p-8 mx-4 max-w-sm w-full ${className}`}>
+      <div
+        className={`relative bg-[#eaf1fd] rounded-3xl shadow-2xl p-8 mx-4 max-w-sm w-full ${className}`}
+      >
         {showCloseButton && (
           <button
             onClick={onClose}

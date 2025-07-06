@@ -1,28 +1,28 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Save } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import BottomNavigation from '../components/BottomNavigation';
-import Button from '../components/Button';
+import React, { useState } from "react";
+import { ArrowLeft } from "lucide-react";
+import { Link } from "react-router-dom";
+import BottomNavigation from "../components/BottomNavigation";
+import Button from "../components/Button";
 
 const ApplyPrescription = () => {
   const [prescriptionData, setPrescriptionData] = useState({
-    sphereOD: '',
-    sphereOS: '',
-    cylinderOD: '',
-    cylinderOS: '',
-    axis: ''
+    sphereOD: "",
+    sphereOS: "",
+    cylinderOD: "",
+    cylinderOS: "",
+    axis: "",
   });
 
   const handleInputChange = (field: string, value: string) => {
-    setPrescriptionData(prev => ({
+    setPrescriptionData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   const handleSave = () => {
     // Save prescription data
-    console.log('Saving prescription:', prescriptionData);
+    console.log("Saving prescription:", prescriptionData);
   };
 
   return (
@@ -31,11 +31,16 @@ const ApplyPrescription = () => {
         <div className="max-w-md mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <Link to="/welcome" className="p-2 hover:bg-white/50 rounded-full transition-colors">
+            <Link
+              to="/welcome"
+              className="p-2 hover:bg-white/50 rounded-full transition-colors"
+            >
               <ArrowLeft className="h-6 w-6 text-gray-600" />
             </Link>
             <div className="text-center flex-1">
-              <span className="text-3xl font-bold text-black whitespace-nowrap">Enter Prescription</span>
+              <span className="text-3xl font-bold text-black whitespace-nowrap">
+                Enter Prescription
+              </span>
             </div>
             <div className="w-10"></div>
           </div>
@@ -51,14 +56,18 @@ const ApplyPrescription = () => {
                 <input
                   type="text"
                   value={prescriptionData.sphereOD}
-                  onChange={(e) => handleInputChange('sphereOD', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("sphereOD", e.target.value)
+                  }
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-2xl text-lg text-center focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
                   placeholder="-1.00"
                 />
                 <input
                   type="text"
                   value={prescriptionData.sphereOS}
-                  onChange={(e) => handleInputChange('sphereOS', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("sphereOS", e.target.value)
+                  }
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-2xl text-lg text-center focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
                   placeholder="-1.25"
                 />
@@ -74,14 +83,18 @@ const ApplyPrescription = () => {
                 <input
                   type="text"
                   value={prescriptionData.cylinderOD}
-                  onChange={(e) => handleInputChange('cylinderOD', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("cylinderOD", e.target.value)
+                  }
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-2xl text-lg text-center focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
                   placeholder="-0.50"
                 />
                 <input
                   type="text"
                   value={prescriptionData.cylinderOS}
-                  onChange={(e) => handleInputChange('cylinderOS', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("cylinderOS", e.target.value)
+                  }
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-2xl text-lg text-center focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
                   placeholder="180"
                 />
@@ -97,7 +110,7 @@ const ApplyPrescription = () => {
                 <input
                   type="text"
                   value={prescriptionData.axis}
-                  onChange={(e) => handleInputChange('axis', e.target.value)}
+                  onChange={(e) => handleInputChange("axis", e.target.value)}
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-2xl text-lg text-center focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
                   placeholder="180"
                 />
@@ -114,7 +127,7 @@ const ApplyPrescription = () => {
           </div>
         </div>
       </div>
-      
+
       <BottomNavigation />
     </div>
   );

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Minus, Plus } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import BottomNavigation from '../components/BottomNavigation';
+import React, { useState } from "react";
+import { ArrowLeft, Minus, Plus } from "lucide-react";
+import { Link } from "react-router-dom";
+import BottomNavigation from "../components/BottomNavigation";
 
 const NewMore = () => {
   const [photoCorrectionEnabled, setPhotoCorrectionEnabled] = useState(false);
@@ -9,33 +9,33 @@ const NewMore = () => {
 
   const menuItems = [
     {
-      title: 'Photo Correction',
-      description: 'Applying correction to all photos in your gallery.',
+      title: "Photo Correction",
+      description: "Applying correction to all photos in your gallery.",
       hasToggle: true,
       enabled: photoCorrectionEnabled,
-      onToggle: () => setPhotoCorrectionEnabled(!photoCorrectionEnabled)
+      onToggle: () => setPhotoCorrectionEnabled(!photoCorrectionEnabled),
     },
     {
-      title: 'Voice Commands',
+      title: "Voice Commands",
       description: 'Say "VividVue off" to disable vision correction.',
       hasToggle: true,
       enabled: voiceCommandsEnabled,
-      onToggle: () => setVoiceCommandsEnabled(!voiceCommandsEnabled)
+      onToggle: () => setVoiceCommandsEnabled(!voiceCommandsEnabled),
     },
     {
-      title: 'Support',
+      title: "Support",
       description: null,
       hasToggle: false,
       enabled: false,
-      onToggle: () => {}
+      onToggle: () => {},
     },
     {
-      title: 'FAQs',
+      title: "FAQs",
       description: null,
       hasToggle: false,
       enabled: false,
-      onToggle: () => {}
-    }
+      onToggle: () => {},
+    },
   ];
 
   return (
@@ -44,8 +44,8 @@ const NewMore = () => {
         <div className="max-w-md mx-auto">
           {/* Header */}
           <div className="flex items-center justify-center mb-8 relative">
-            <Link 
-              to="/welcome" 
+            <Link
+              to="/welcome"
               className="absolute left-0 p-2 hover:bg-white/50 rounded-full transition-colors"
             >
               <ArrowLeft className="h-6 w-6 text-gray-600" />
@@ -59,9 +59,11 @@ const NewMore = () => {
               <div
                 key={index}
                 className={`bg-white p-6 border-b border-gray-200 ${
-                  index === 0 ? 'rounded-t-3xl' : ''
+                  index === 0 ? "rounded-t-3xl" : ""
                 } ${
-                  index === menuItems.length - 1 ? 'rounded-b-3xl border-b-0' : ''
+                  index === menuItems.length - 1
+                    ? "rounded-b-3xl border-b-0"
+                    : ""
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -75,7 +77,7 @@ const NewMore = () => {
                       </p>
                     )}
                   </div>
-                  
+
                   <div className="ml-4">
                     {item.hasToggle ? (
                       <button
@@ -100,7 +102,7 @@ const NewMore = () => {
           </div>
         </div>
       </div>
-      
+
       <BottomNavigation />
     </div>
   );

@@ -1,436 +1,445 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, RefreshCw, Eye, EyeOff, TestTube, CheckCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import BottomNavigation from '../components/BottomNavigation';
-import CameraPreview from '../components/CameraPreview';
-import WebViewer from '../components/WebViewer';
-import EmailViewer from '../components/EmailViewer';
-import ImageViewer from '../components/ImageViewer';
-import { useVisionCorrection, getVisionCorrectionStyle } from '../hooks/useVisionCorrection';
+import React, { useState, useEffect } from "react";
+import { VisionProcessor } from "../components/VisionProcessor";
+import { useVisionCorrection } from "../hooks/useVisionCorrection";
+import CameraDemo from "../components/CameraDemo";
+import NativeAppDemo from "../components/NativeAppDemo";
+// Removed unused imports - using local components instead
 
-const ContentDemo = () => {
-  console.log("✅ Loaded latest version of ContentDemo");
-  
-  const { isEnabled, diopterValue, blurAmount, calibrationValue } = useVisionCorrection();
-  const debugCalibrationValue = typeof window !== 'undefined' ? localStorage.getItem('calibrationValue') : null;
-  const debugVisionEnabled = typeof window !== 'undefined' ? localStorage.getItem('visionCorrectionEnabled') : null;
-  const visionStyle = getVisionCorrectionStyle();
-  const [selectedRx, setSelectedRx] = useState(() => {
-    const savedRx = localStorage.getItem('estimatedSphere');
-    return savedRx ? parseFloat(savedRx) : 2.0;
-  });
-  const [showEyeTest, setShowEyeTest] = useState(true);
+// Sample content components for testing - using local versions to avoid conflicts
+const SampleImageLocal: React.FC = () => (
+  <div className="mb-6">
+    <h3 className="text-lg font-semibold mb-3">Image Processing Test</h3>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <img
+        src="https://picsum.photos/400/300?random=1"
+        alt="Sample landscape"
+        className="rounded-lg shadow-md w-full"
+      />
+      <img
+        src="https://picsum.photos/400/300?random=2"
+        alt="Sample portrait"
+        className="rounded-lg shadow-md w-full"
+      />
+    </div>
+  </div>
+);
 
-  // ✅ FIXED: Eye test blur simulation using current calibration from localStorage
-  const storedCalibration = typeof window !== 'undefined' ? localStorage.getItem('calibrationValue') : null;
-  // ✅ FIXED: Remove fallback to 2.0 - use 0.0 if no calibration found
-  const currentCalibration = storedCalibration ? parseFloat(storedCalibration) : 0.0;
-  const eyeTestBlur = Math.max(0, currentCalibration - selectedRx);
+const SampleText: React.FC = () => (
+  <div className="mb-6">
+    <h3 className="text-lg font-semibold mb-3">Text Processing Test</h3>
+    <div className="prose prose-sm max-w-none">
+      <p className="text-sm text-gray-600 mb-2">
+        This is small text to test near vision correction. It should become
+        clearer and sharper when presbyopia correction is applied.
+      </p>
+      <p className="text-base text-gray-800 mb-2">
+        This is regular text that tests the balance between near and far vision
+        corrections.
+      </p>
+      <p className="text-lg text-gray-900 mb-2">
+        This is larger text that primarily tests far vision correction
+        algorithms.
+      </p>
+      <div className="bg-gray-100 p-4 rounded-lg">
+        <code className="text-xs">
+          function testVision() {"{"}
+          <br />
+          &nbsp;&nbsp;// Small code text for detailed near vision testing
+          <br />
+          &nbsp;&nbsp;return "Testing edge enhancement and contrast";
+          <br />
+          {"}"}
+        </code>
+      </div>
+    </div>
+  </div>
+);
 
-  // ✅ FIXED: Confirm calibration with correct localStorage keys
-  const handleConfirmCalibration = () => {
-    console.log(`🧪 ContentDemo: Confirming prescription +${selectedRx.toFixed(2)}D as user's calibration baseline`);
-    
-    // ✅ FIXED: Save calibrationValue = selectedValue (no clamping to +2.0D)
-    localStorage.setItem('calibrationValue', selectedRx.toString());
-    // ✅ FIXED: Add this line to explicitly set estimatedSphere to match selectedValue
-    localStorage.setItem('estimatedSphere', selectedRx.toString());
-    // ✅ FIXED: Set visionCorrectionEnabled = true
-    localStorage.setItem('visionCorrectionEnabled', 'true');
-    localStorage.setItem('hasConfirmedVision', 'true');
-    
-    console.log('📝 ContentDemo: Dynamic calibration set - user will see 0px blur at their selected prescription');
-    
-    // ✅ FIXED: Reload the page to apply changes
-    console.log('🔄 ContentDemo: Reloading page to apply calibration...');
-    window.location.reload();
-  };
+// Vision Test component removed - calibration is handled in VisionCalibration page
 
-  // ✅ FIXED: Dynamic test scenario buttons - no clamping to +2.0D
-  const updateRx = (rx: number) => {
-    console.log(`🧪 ContentDemo: Setting prescription to +${rx.toFixed(2)}D`, {
-      calibrationValue: calibrationValue,
-      testPrescription: rx,
-      expectedBlur: Math.max(0, calibrationValue - rx)
-    });
-    
-    // ✅ FIXED: Set estimatedSphere = test value (no clamping to +2.0D)
-    localStorage.setItem('estimatedSphere', rx.toString());
-    // ✅ FIXED: Enable vision correction for test
-    localStorage.setItem('visionCorrectionEnabled', 'true');
-    
-    console.log('📝 ContentDemo: Test prescription updated, forcing page reload...');
-    window.location.reload();
-  };
+const InteractiveDemo: React.FC = () => {
+  const [demoText, setDemoText] = useState("");
+  const [fontSize, setFontSize] = useState(16);
 
-  // ✅ FIXED: Clear settings function - remove all keys and reload
-  const clearVisionCorrection = () => {
-    console.log('🧪 ContentDemo: Clearing vision correction settings');
-    
-    // ✅ FIXED: Remove all 4 keys
-    localStorage.removeItem('visionCorrectionEnabled');
-    localStorage.removeItem('calibrationValue');
-    localStorage.removeItem('estimatedSphere');
-    localStorage.removeItem('hasConfirmedVision');
-    
-    console.log('🗑️ ContentDemo: Vision correction settings cleared, forcing page reload...');
-    // ✅ FIXED: After clearing, reload page
-    window.location.reload();
-  };
+  useEffect(() => {
+    setDemoText(`
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
 
-  const handlePhotoCapture = (imageData: string) => {
-    console.log('Photo captured:', imageData.substring(0, 50) + '...');
-  };
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+
+This text should become clearer and easier to read when the vision correction is properly calibrated for your presbyopia.
+    `);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-[#eaf1fd] font-garamond pb-20">
-      <div className="px-4 py-6">
-        <div className="max-w-md mx-auto">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <Link to="/homepage" className="p-2 hover:bg-white/50 rounded-full transition-colors">
-              <ArrowLeft className="h-6 w-6 text-gray-600" />
-            </Link>
-            <h1 className="text-3xl font-bold text-black">Content Demo</h1>
-            <button 
-              onClick={() => window.location.reload()}
-              className="p-2 hover:bg-white/50 rounded-full transition-colors"
-              title="Force refresh"
-            >
-              <RefreshCw className="h-6 w-6 text-gray-600" />
-            </button>
-          </div>
+    <div className="mb-6">
+      <h3 className="text-lg font-semibold mb-3">Interactive Reading Test</h3>
 
-          {/* ✅ FIXED: Eye Test Component with dynamic calibration logic */}
-          {showEyeTest && (
-            <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-black flex items-center">
-                  <TestTube className="h-5 w-5 mr-2 text-blue-600" />
-                  Dynamic Calibration Eye Test
-                </h3>
-                <button
-                  onClick={() => setShowEyeTest(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  ✕
-                </button>
-              </div>
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Font Size: {fontSize}px
+        </label>
+        <input
+          type="range"
+          min="10"
+          max="24"
+          value={fontSize}
+          onChange={(e) => setFontSize(parseInt(e.target.value))}
+          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+        />
+      </div>
 
-              {/* Instructions */}
-              <div className="mb-6">
-                <p className="text-gray-700 leading-relaxed">
-                  <strong>Remove your glasses</strong> and adjust the slider until the text below is perfectly clear. 
-                  This prescription will become your personal calibration baseline - you'll see 0px blur at this strength.
-                </p>
-              </div>
-
-              {/* ✅ FIXED: Test Text with dynamic calibration-based blur logic */}
-              <div className="text-center mb-6 p-6 bg-gray-50 rounded-xl">
-                <div 
-                  className="text-black text-lg leading-relaxed font-medium transition-all duration-300"
-                  style={{
-                    filter: `blur(${eyeTestBlur.toFixed(2)}px)`,
-                    textShadow: eyeTestBlur > 0 ? `0 0 ${eyeTestBlur}px rgba(0,0,0,0.3)` : 'none'
-                  }}
-                >
-                  <p className="mb-4">
-                    We do not see<br />
-                    things as they are,<br />
-                    we see them as<br />
-                    we are.
-                  </p>
-                  <p className="text-base text-gray-600">
-                    – Anais Nin
-                  </p>
-                </div>
-              </div>
-
-              {/* ✅ FIXED: Prescription Slider - uncapped to 3.50D */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">Prescription Strength</span>
-                  <span className="text-sm font-bold text-blue-600">
-                    +{selectedRx.toFixed(2)}D
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="3.5"
-                  step="0.25"
-                  value={selectedRx}
-                  onChange={(e) => setSelectedRx(parseFloat(e.target.value))}
-                  className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>+0.00D (Very Blurry)</span>
-                  <span>+3.50D (Crystal Clear)</span>
-                </div>
-                <style jsx>{`
-                  .slider::-webkit-slider-thumb {
-                    appearance: none;
-                    height: 24px;
-                    width: 24px;
-                    border-radius: 50%;
-                    background: #3399FF;
-                    cursor: pointer;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-                  }
-                  .slider::-moz-range-thumb {
-                    height: 24px;
-                    width: 24px;
-                    border-radius: 50%;
-                    background: #3399FF;
-                    cursor: pointer;
-                    border: none;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-                  }
-                `}</style>
-              </div>
-
-              {/* Dynamic Calibration Feedback */}
-              <div className="bg-blue-50 rounded-xl p-4 mb-6">
-                <div className="text-center">
-                  <p className="text-blue-800 font-semibold mb-1">
-                    Testing: +{selectedRx.toFixed(2)}D (Will become your calibration baseline)
-                  </p>
-                  <p className="text-blue-600 text-sm">
-                    Eye Test Blur: {eyeTestBlur.toFixed(2)}px | Formula: {currentCalibration.toFixed(2)} - {selectedRx.toFixed(2)} = {eyeTestBlur.toFixed(2)}px
-                  </p>
-                  <p className="text-blue-500 text-xs mt-1">
-                    {eyeTestBlur === 0 ? '🎯 Perfect clarity - this will be your 0px blur point!' : 
-                     eyeTestBlur < 1 ? '✨ Very clear' : 
-                     eyeTestBlur < 2 ? '👍 Getting clearer' : 
-                     '👁️ Still blurry - keep adjusting'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Confirm Button */}
-              <button
-                onClick={handleConfirmCalibration}
-                className="w-full bg-green-600 text-white px-6 py-4 rounded-xl text-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
-              >
-                <CheckCircle className="h-5 w-5" />
-                <span>Set as My Calibration (+{selectedRx.toFixed(2)}D)</span>
-              </button>
-            </div>
-          )}
-
-          {/* Vision Status */}
-          <div className="bg-white rounded-2xl shadow-lg p-4 mb-6">
-            <div className="text-center">
-              <h3 className="text-lg font-bold text-black mb-2 flex items-center justify-center">
-                {isEnabled ? (
-                  <Eye className="h-5 w-5 mr-2 text-green-600" />
-                ) : (
-                  <EyeOff className="h-5 w-5 mr-2 text-red-600" />
-                )}
-                Vision Correction Status
-              </h3>
-              <div className="space-y-1">
-                <p className="text-sm text-gray-600">
-                  Status: <span className={`font-semibold ${isEnabled ? 'text-green-600' : 'text-red-600'}`}>
-                    {isEnabled ? 'ENABLED' : 'DISABLED'}
-                  </span>
-                </p>
-                {isEnabled ? (
-                  <>
-                    <p className="text-sm text-gray-600">
-                      Your Calibration: <span className="font-semibold">+{calibrationValue.toFixed(2)}D</span>
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Current Prescription: <span className="font-semibold">+{diopterValue.toFixed(2)}D</span>
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Content Blur: <span className="font-semibold">{blurAmount.toFixed(2)}px</span>
-                    </p>
-                    <p className="text-xs text-green-700 font-medium">
-                      Formula: {calibrationValue.toFixed(2)} - {diopterValue.toFixed(2)} = {blurAmount.toFixed(2)}px
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-sm text-gray-600">
-                      Baseline Blur: <span className="font-semibold">{blurAmount.toFixed(2)}px</span>
-                    </p>
-                    <p className="text-xs text-red-700 font-medium">
-                      Natural vision using calibration value as baseline
-                    </p>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Test Controls */}
-          <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-            <h3 className="text-lg font-bold text-black mb-4">🧪 Calibration Test Scenarios</h3>
-            
-            {/* ✅ FIXED: Quick Test Buttons with proper logging - uncapped values */}
-            <div className="space-y-3 mb-4">
-              <button
-                onClick={() => {
-                  console.log(`🧪 Test Scenario: Perfect Vision (+3.50D prescription)`, {
-                    calibration: calibrationValue,
-                    testPrescription: 3.50,
-                    expectedBlur: Math.max(0, calibrationValue - 3.50)
-                  });
-                  updateRx(3.50);
-                }}
-                className="w-full bg-green-600 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:bg-green-700 transition-colors"
-              >
-                Perfect Vision (+3.50D prescription)
-              </button>
-              <button
-                onClick={() => {
-                  console.log(`🧪 Test Scenario: Moderate Vision (+2.00D prescription)`, {
-                    calibration: calibrationValue,
-                    testPrescription: 2.00,
-                    expectedBlur: Math.max(0, calibrationValue - 2.00)
-                  });
-                  updateRx(2.00);
-                }}
-                className="w-full bg-blue-600 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors"
-              >
-                Moderate Vision (+2.00D prescription)
-              </button>
-              <button
-                onClick={() => {
-                  console.log(`🧪 Test Scenario: Mild Vision (+1.00D prescription)`, {
-                    calibration: calibrationValue,
-                    testPrescription: 1.00,
-                    expectedBlur: Math.max(0, calibrationValue - 1.00)
-                  });
-                  updateRx(1.00);
-                }}
-                className="w-full bg-orange-600 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:bg-orange-700 transition-colors"
-              >
-                Mild Vision (+1.00D prescription)
-              </button>
-            </div>
-
-            {/* Clear Settings Button */}
-            <button
-              onClick={clearVisionCorrection}
-              className="w-full mt-4 bg-red-600 text-white px-4 py-3 rounded-xl font-semibold hover:bg-red-700 transition-colors"
-            >
-              🚫 Clear Settings
-            </button>
-          </div>
-
-          {/* Content Viewers */}
-          <div className="space-y-6">
-            {/* Camera Preview */}
-            <div style={visionStyle}>
-              <h3 className="text-lg font-bold text-black mb-3">📷 Camera Preview</h3>
-              <CameraPreview className="h-48" onCapture={handlePhotoCapture} />
-              <div className="mt-2 text-center">
-                <span className="text-xs text-gray-500">
-                  Current blur: {blurAmount.toFixed(2)}px
-                </span>
-              </div>
-            </div>
-            
-            {/* Web Viewer */}
-            <div style={visionStyle}>
-              <h3 className="text-lg font-bold text-black mb-3">🌐 Web Viewer</h3>
-              <WebViewer />
-              <div className="mt-2 text-center">
-                <span className="text-xs text-gray-500">
-                  Current blur: {blurAmount.toFixed(2)}px
-                </span>
-              </div>
-            </div>
-
-            {/* ✅ FIXED: Reading Test using useVisionCorrection hook */}
-            <div style={visionStyle}>
-              <h3 className="text-lg font-bold text-black mb-3">📝 Reading Test</h3>
-              <div className="bg-white rounded-2xl shadow-lg p-6">
-                <div className="text-gray-800 leading-relaxed transition-all duration-300">
-                  <h4 className="text-xl font-bold mb-4">Calibration Reading Test</h4>
-                  <p className="mb-4">
-                    This text demonstrates the vision correction system. When enabled, the blur is calculated 
-                    relative to your personal calibration point. The formula is: blur = Math.max(0, calibrationValue - prescription).
-                  </p>
-                  <p className="mb-4">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod 
-                    tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim 
-                    veniam, quis nostrud exercitation ullamco laboris.
-                  </p>
-                </div>
-                <div className={`p-4 rounded-lg mt-4 ${isEnabled ? 'bg-green-50' : 'bg-red-50'}`}>
-                  <p className={`font-semibold ${isEnabled ? 'text-green-800' : 'text-red-800'}`}>
-                    {isEnabled ? 
-                      `✅ Vision correction ENABLED – dynamic correction: ${blurAmount.toFixed(2)}px` : 
-                      `✅ Vision correction DISABLED – baseline blur applied: ${blurAmount.toFixed(2)}px`
-                    }
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Email Viewer */}
-            <div style={visionStyle}>
-              <h3 className="text-lg font-bold text-black mb-3">📩 Email Viewer</h3>
-              <EmailViewer />
-              <div className="mt-2 text-center">
-                <span className="text-xs text-gray-500">
-                  Current blur: {blurAmount.toFixed(2)}px
-                </span>
-              </div>
-            </div>
-
-            {/* Image Viewer */}
-            <div style={visionStyle}>
-              <h3 className="text-lg font-bold text-black mb-3">🖼️ Image Viewer</h3>
-              <ImageViewer />
-              <div className="mt-2 text-center">
-                <span className="text-xs text-gray-500">
-                  Current blur: {blurAmount.toFixed(2)}px
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Instructions */}
-          <div className="mt-8 bg-blue-50 border border-blue-200 rounded-2xl p-4">
-            <h4 className="font-semibold text-blue-900 mb-2">🔧 How Calibration Works:</h4>
-            <ol className="text-sm text-blue-800 space-y-1">
-              <li>1. <strong>Eye Test:</strong> Find your clarity point (where text becomes clear)</li>
-              <li>2. <strong>Personal Baseline:</strong> Your selected prescription becomes your calibration value</li>
-              <li>3. <strong>Dynamic Formula:</strong> blur = Math.max(0, calibrationValue - prescription)</li>
-              <li>4. <strong>Toggle State:</strong> ENABLED = corrective blur, DISABLED = baseline blur</li>
-              <li>5. <strong>No Capping:</strong> Values can go up to +3.50D without artificial limits</li>
-            </ol>
-          </div>
-
-          {/* 🐛 Debug Info */}
-          {import.meta.env.DEV && (
-            <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-2xl p-4">
-              <h4 className="font-semibold text-yellow-900 mb-2">🐛 Debug Info:</h4>
-              <div className="text-xs text-yellow-800 space-y-1">
-                <p>localStorage.calibrationValue: {debugCalibrationValue}</p>
-                <p>localStorage.visionCorrectionEnabled: {debugVisionEnabled}</p>
-                <p>
-                  localStorage.estimatedSphere:{' '}
-                  {typeof window !== 'undefined' ? localStorage.getItem('estimatedSphere') : null}
-                </p>
-                <p>Hook isEnabled: {String(isEnabled)}</p>
-                <p>Hook calibrationValue: {calibrationValue.toFixed(2)}</p>
-                <p>Hook diopterValue: {diopterValue.toFixed(2)}</p>
-                <p>Hook blurAmount: {blurAmount.toFixed(2)}</p>
-                <p>Selected prescription: {selectedRx.toFixed(2)}</p>
-                <p>Eye test blur: {eyeTestBlur.toFixed(2)}px</p>
-                <p>Current calibration: {currentCalibration.toFixed(2)}</p>
-              </div>
-            </div>
-          )}
+      <div
+        className="bg-white p-6 rounded-lg shadow-md border"
+        style={{ fontSize: `${fontSize}px` }}
+      >
+        <div className="prose prose-sm max-w-none">
+          {demoText.split("\n").map((paragraph, index) => (
+            <p key={index} className="mb-3 text-gray-800 leading-relaxed">
+              {paragraph}
+            </p>
+          ))}
         </div>
       </div>
-      
-      <BottomNavigation />
+    </div>
+  );
+};
+
+const EmailDemo: React.FC = () => (
+  <div className="mb-6">
+    <h3 className="text-lg font-semibold mb-3">Email Content Test</h3>
+    <div className="bg-white rounded-lg shadow-md border">
+      {/* Email Header */}
+      <div className="border-b p-4">
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-sm text-gray-600">
+            From: john.doe@example.com
+          </div>
+          <div className="text-sm text-gray-600">Today 2:45 PM</div>
+        </div>
+        <div className="text-lg font-semibold">
+          Weekly Team Update - Project Status
+        </div>
+      </div>
+
+      {/* Email Body */}
+      <div className="p-6">
+        <div className="prose prose-sm max-w-none">
+          <p className="text-gray-800 mb-4">Hi team,</p>
+          <p className="text-gray-800 mb-4">
+            I wanted to provide you with a quick update on our current project
+            milestones and upcoming deadlines.
+          </p>
+          <p className="text-gray-800 mb-4">
+            <strong>Completed this week:</strong>
+          </p>
+          <ul className="list-disc pl-5 mb-4 text-gray-700">
+            <li>User authentication system implementation</li>
+            <li>Database schema optimization</li>
+            <li>Initial UI/UX mockups completed</li>
+          </ul>
+          <p className="text-gray-800 mb-4">
+            <strong>Upcoming priorities:</strong>
+          </p>
+          <ul className="list-disc pl-5 mb-4 text-gray-700">
+            <li>API endpoint testing - due Friday</li>
+            <li>Mobile responsiveness review</li>
+            <li>Security audit preparation</li>
+          </ul>
+          <p className="text-gray-800 mb-4">
+            Please review the attached documents and let me know if you have any
+            questions or concerns.
+          </p>
+          <p className="text-gray-800">
+            Best regards,
+            <br />
+            John Doe
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const WebDemo: React.FC = () => (
+  <div className="mb-6">
+    <h3 className="text-lg font-semibold mb-3">Web Content Test</h3>
+    <div className="bg-white rounded-lg shadow-md border">
+      {/* Browser Bar */}
+      <div className="bg-gray-100 p-3 rounded-t-lg border-b">
+        <div className="flex items-center space-x-2">
+          <div className="flex space-x-1">
+            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+          <div className="flex-1 bg-white rounded px-3 py-1 text-sm text-gray-600">
+            https://example.com/article
+          </div>
+        </div>
+      </div>
+
+      {/* Web Content */}
+      <div className="p-6">
+        <article className="prose prose-sm max-w-none">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            The Future of Vision Correction Technology
+          </h1>
+          <div className="text-sm text-gray-600 mb-6">
+            Published on March 15, 2024 | 5 min read
+          </div>
+
+          <p className="text-gray-800 mb-4">
+            Digital vision correction is revolutionizing how we interact with
+            screens and digital content. As our reliance on digital devices
+            continues to grow, innovative solutions are emerging to address the
+            challenges of presbyopia and digital eye strain.
+          </p>
+
+          <h2 className="text-xl font-semibold text-gray-900 mb-3">
+            Key Innovations in Digital Vision Correction
+          </h2>
+
+          <p className="text-gray-800 mb-4">
+            Modern vision correction technology leverages advanced algorithms to
+            process visual content in real-time. These systems can adapt to
+            individual user needs, providing personalized enhancement that
+            improves readability and reduces eye fatigue.
+          </p>
+
+          <blockquote className="border-l-4 border-blue-500 pl-4 italic text-gray-700 mb-4">
+            "The integration of AI-powered vision correction with everyday
+            digital experiences represents a significant leap forward in
+            accessibility technology."
+          </blockquote>
+
+          <h2 className="text-xl font-semibold text-gray-900 mb-3">
+            Benefits for Users
+          </h2>
+
+          <ul className="list-disc pl-5 mb-4 text-gray-700">
+            <li>Reduced eye strain during prolonged screen use</li>
+            <li>Improved text clarity for users with presbyopia</li>
+            <li>Customizable settings for different viewing conditions</li>
+            <li>Real-time adaptation to content type and size</li>
+          </ul>
+
+          <p className="text-gray-800">
+            As this technology continues to evolve, we can expect even more
+            sophisticated solutions that seamlessly integrate with our digital
+            lives, making technology more accessible for everyone.
+          </p>
+        </article>
+      </div>
+    </div>
+  </div>
+);
+
+const PerformanceMonitorLocal: React.FC = () => {
+  const [metrics, setMetrics] = useState<{
+    processedElements: number;
+    averageProcessingTime: number;
+    lastUpdate: string;
+  }>({
+    processedElements: 0,
+    averageProcessingTime: 0,
+    lastUpdate: "",
+  });
+
+  useEffect(() => {
+    // Simulate performance monitoring
+    const interval = setInterval(() => {
+      setMetrics((prev) => ({
+        processedElements:
+          prev.processedElements + Math.floor(Math.random() * 5),
+        averageProcessingTime: 12 + Math.random() * 8,
+        lastUpdate: new Date().toLocaleTimeString(),
+      }));
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="bg-gray-50 rounded-lg p-4 mb-6">
+      <h4 className="font-semibold text-gray-900 mb-3">
+        Processing Statistics
+      </h4>
+      <div className="grid grid-cols-3 gap-4 text-sm">
+        <div>
+          <div className="text-gray-600">Elements Processed</div>
+          <div className="text-xl font-bold text-blue-600">
+            {metrics.processedElements}
+          </div>
+        </div>
+        <div>
+          <div className="text-gray-600">Avg. Processing Time</div>
+          <div className="text-xl font-bold text-green-600">
+            {metrics.averageProcessingTime.toFixed(1)}ms
+          </div>
+        </div>
+        <div>
+          <div className="text-gray-600">Last Update</div>
+          <div className="text-sm font-medium text-gray-800">
+            {metrics.lastUpdate}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ContentDemo: React.FC = () => {
+  const [activeTab, setActiveTab] = useState("overview");
+  const [calibrationValue, setCalibratonValue] = useState(0);
+
+  // Use the vision correction hook to access current settings
+  const visionHook = useVisionCorrection();
+
+  // Load vision settings
+  useEffect(() => {
+    const savedCalibration = parseFloat(
+      localStorage.getItem("calibrationValue") || "0",
+    );
+    setCalibratonValue(savedCalibration);
+  }, []);
+
+  const tabs = [
+    { id: "overview", name: "Overview", icon: "👁️" },
+    { id: "images", name: "Images", icon: "🖼️" },
+    { id: "email", name: "Email", icon: "📧" },
+    { id: "web", name: "Web", icon: "🌐" },
+    { id: "camera", name: "Camera", icon: "📷" },
+    { id: "native", name: "Native App", icon: "📱" },
+  ];
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            MaxVue Vision Correction Demo
+          </h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Experience advanced presbyopia correction powered by our
+            VisionCorrectionEngine. The system uses canvas-based image
+            processing with adaptive sharpening algorithms to enhance your
+            visual experience across all types of content.
+          </p>
+        </div>
+
+        {/* Main Vision Processor Wrapper */}
+        <VisionProcessor
+          className="w-full"
+          autoProcess={true}
+          showControls={true}
+        >
+          {/* Tab Navigation */}
+          <div className="flex flex-wrap justify-center mb-8">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center space-x-2 px-6 py-3 mx-1 mb-2 rounded-lg font-medium transition-colors ${
+                  activeTab === tab.id
+                    ? "bg-blue-600 text-white"
+                    : "bg-white text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <span>{tab.icon}</span>
+                <span>{tab.name}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Content Area */}
+          <div className="bg-white rounded-xl shadow-lg p-8">
+            {activeTab === "overview" && (
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                  System Overview
+                </h2>
+                <PerformanceMonitorLocal />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">How It Works</h3>
+                    <ul className="space-y-2 text-gray-700">
+                      <li className="flex items-start">
+                        <span className="text-blue-600 mr-2">•</span>
+                        Canvas-based image processing for real visual
+                        enhancement
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-blue-600 mr-2">•</span>
+                        Adaptive sharpening algorithms tailored for presbyopia
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-blue-600 mr-2">•</span>
+                        Real-time processing of images, videos, and text
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-blue-600 mr-2">•</span>
+                        Personalized calibration based on your vision needs
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Key Features</h3>
+                    <ul className="space-y-2 text-gray-700">
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">✓</span>
+                        Unsharp mask filtering for enhanced clarity
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">✓</span>
+                        Edge enhancement for better text reading
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">✓</span>
+                        Contrast optimization for improved visibility
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-600 mr-2">✓</span>
+                        Presbyopia-specific correction (reading vision)
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="mt-8">
+                  <SampleText />
+                  <InteractiveDemo />
+                  <SampleImageLocal />
+                </div>
+              </div>
+            )}
+
+            {activeTab === "images" && <SampleImageLocal />}
+            {activeTab === "email" && <EmailDemo />}
+            {activeTab === "web" && <WebDemo />}
+            {activeTab === "camera" && (
+              <CameraDemo
+                readingVisionDiopter={visionHook.settings?.readingVision || 0}
+                calibrationValue={calibrationValue}
+              />
+            )}
+            {activeTab === "native" && <NativeAppDemo />}
+          </div>
+
+          {/* Footer Info */}
+          <div className="mt-8 text-center text-gray-600">
+            <p>
+              Adjust the vision correction settings above to optimize your
+              viewing experience. The system will automatically process all
+              visual content on this page.
+            </p>
+          </div>
+        </VisionProcessor>
+      </div>
     </div>
   );
 };
