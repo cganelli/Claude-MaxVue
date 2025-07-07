@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { VisionProcessor } from "../components/VisionProcessor";
 import { useVisionCorrection } from "../hooks/useVisionCorrection";
 import CameraDemo from "../components/CameraDemo";
@@ -294,40 +294,60 @@ const PerformanceMonitorLocal: React.FC = () => {
 const ContentDemo: React.FC = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [calibrationValue, setCalibrationValue] = useState(0);
+  const [calibrationLoaded, setCalibrationLoaded] = useState(false);
+  
+  // CRITICAL FIX: Add loading ref to prevent multiple simultaneous loads
+  const loadingRef = useRef(false);
 
   // Use the vision correction hook to access current settings
   const visionHook = useVisionCorrection();
 
-  // Load vision settings with debug logging
+  // CRITICAL FIX: Single useEffect with proper dependencies to prevent infinite loop
   useEffect(() => {
-    console.log("🔍 ContentDemo: Loading calibration data...");
-    
-    // Check all possible calibration keys
-    const savedCalibration = localStorage.getItem("calibrationValue");
-    const estimatedSphere = localStorage.getItem("estimatedSphere");
-    const visionEnabled = localStorage.getItem("visionCorrectionEnabled");
-    
-    console.log("📊 ContentDemo: LocalStorage debug:", {
-      calibrationValue: savedCalibration,
-      estimatedSphere: estimatedSphere,
-      visionCorrectionEnabled: visionEnabled,
-      allKeys: Object.keys(localStorage).filter(k => k.includes('calibr') || k.includes('vision')),
-    });
-    
-    const calibrationVal = parseFloat(savedCalibration || "0");
-    setCalibrationValue(calibrationVal);
-    
-    console.log(`✅ ContentDemo: Loaded calibration: +${calibrationVal.toFixed(2)}D`);
-    
-    // If we have a calibration value, update the vision hook settings
-    if (calibrationVal > 0) {
-      console.log(`🎯 ContentDemo: Applying calibration +${calibrationVal.toFixed(2)}D to vision settings`);
-      visionHook.updateSettings({ 
-        readingVision: calibrationVal,
-        isEnabled: visionEnabled === "true" 
-      });
+    // CRITICAL FIX: Prevent multiple simultaneous loads
+    if (loadingRef.current || calibrationLoaded) {
+      return;
     }
-  }, [visionHook]);
+    
+    loadingRef.current = true;
+    console.log("🔍 ContentDemo: Loading calibration data (once)...");
+    
+    try {
+      // Check all possible calibration keys
+      const savedCalibration = localStorage.getItem("calibrationValue");
+      const estimatedSphere = localStorage.getItem("estimatedSphere");
+      const visionEnabled = localStorage.getItem("visionCorrectionEnabled");
+      
+      console.log("📊 ContentDemo: LocalStorage debug:", {
+        calibrationValue: savedCalibration,
+        estimatedSphere: estimatedSphere,
+        visionCorrectionEnabled: visionEnabled,
+        allKeys: Object.keys(localStorage).filter(k => k.includes('calibr') || k.includes('vision')),
+      });
+      
+      const calibrationVal = parseFloat(savedCalibration || "0");
+      setCalibrationValue(calibrationVal);
+      
+      console.log(`✅ ContentDemo: Loaded calibration: +${calibrationVal.toFixed(2)}D`);
+      
+      // If we have a calibration value, update the vision hook settings
+      if (calibrationVal > 0) {
+        console.log(`🎯 ContentDemo: Applying calibration +${calibrationVal.toFixed(2)}D to vision settings`);
+        visionHook.updateSettings({ 
+          readingVision: calibrationVal,
+          isEnabled: visionEnabled === "true" 
+        });
+      }
+      
+      // CRITICAL FIX: Mark calibration as loaded to prevent re-runs
+      setCalibrationLoaded(true);
+    } catch (error) {
+      console.error('❌ ContentDemo: Error loading calibration:', error);
+    } finally {
+      loadingRef.current = false;
+    }
+  }, []); // CRITICAL FIX: Empty dependency array - only run once on mount
+  // Note: visionHook and calibrationLoaded deliberately excluded to prevent infinite loop
 
   const tabs = [
     { id: "overview", name: "Overview", icon: "👁️" },

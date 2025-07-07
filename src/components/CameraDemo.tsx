@@ -158,6 +158,13 @@ const CameraDemo: React.FC<CameraDemoProps> = ({
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
+      
+      console.error('❌ CameraDemo: Full error details:', {
+        error,
+        name: error instanceof DOMException ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      });
 
       setCameraError(errorMessage);
       setCameraState("error");
