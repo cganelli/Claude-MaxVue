@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaxVue Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .demo-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .demo-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .demo-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .demo-subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .phone-mockup {
+            width: 288px;
+            height: 520px;
+            background: #1a1a1a;
+            border-radius: 48px;
+            padding: 8px;
+            margin: 0 auto 20px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .phone-screen {
+            width: 272px;
+            height: 504px;
+            background: #000;
+            border-radius: 40px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .content-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: filter 2s cubic-bezier(0.4, 0, 0.2, 1);
+            filter: blur(6px);
+        }
+
+        .content-image.clear {
+            filter: blur(0px);
+        }
+
+        .vision-indicator {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: rgba(255,255,255,0.95);
+            color: #333;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            opacity: 0;
+            transition: all 0.5s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .vision-indicator.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .play-btn {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .play-btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .progress-container {
+            background: #f0f0f0;
+            height: 4px;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.1s ease;
+            border-radius: 2px;
+        }
+
+        .section-label {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 140px;
+            height: 30px;
+            background: #1a1a1a;
+            border-radius: 0 0 20px 20px;
+            z-index: 10;
+        }
+
+        .home-indicator {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 134px;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1 class="demo-title">MaxVue Demo</h1>
+            <p class="demo-subtitle">Experience crystal clear vision correction</p>
+        </div>
+
+        <div class="phone-mockup">
+            <div class="notch"></div>
+            <div class="phone-screen">
+                <img id="contentImage" class="content-image" src="" alt="Content">
+                <div id="visionIndicator" class="vision-indicator">✨ Vision Corrected</div>
+            </div>
+            <div class="home-indicator"></div>
+        </div>
+
+        <div class="controls">
+            <button id="playBtn" class="play-btn">▶</button>
+        </div>
+
+        <div class="progress-container">
+            <div id="progressBar" class="progress-bar"></div>
+        </div>
+
+        <div id="sectionLabel" class="section-label">Ready to Start</div>
+    </div>
+
+    <script>
+        class MaxVueDemo {
+            constructor() {
+                this.currentSection = 0;
+                this.isPlaying = false;
+                
+                // Create highly detailed recreations of your specific uploaded images
+                this.sections = [
+                    {
+                        name: 'Music App',
+                        image: this.createSpotifyImage()
+                    },
+                    {
+                        name: 'Email',
+                        image: this.createEmailImage()
+                    },
+                    {
+                        name: 'Website',
+                        image: this.createWikipediaImage()
+                    },
+                    {
+                        name: 'Photo',
+                        image: this.createPugImage()
+                    },
+                    {
+                        name: 'Camera',
+                        image: this.createFlowersImage()
+                    }
+                ];
+
+                this.init();
+            }
+
+            createSpotifyImage() {
+                // Exact recreation of your Spotify screenshot
+                return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='272' height='504' viewBox='0 0 272 504'%3E%3Crect width='272' height='504' fill='%23121212'/%3E%3C!-- Status bar --%3E%3Ctext x='20' y='25' font-family='-apple-system' font-size='12' font-weight='600' fill='%23fff'%3E9:41%3C/text%3E%3Cg transform='translate(200,15)'%3E%3Crect width='15' height='8' fill='none' stroke='%23fff' stroke-width='1'/%3E%3Crect x='2' y='2' width='11' height='4' fill='%23fff'/%3E%3Crect x='20' y='2' width='8' height='4' fill='%23fff' rx='1'/%3E%3Crect x='35' y='0' width='20' height='10' fill='none' stroke='%23fff' stroke-width='1' rx='2'/%3E%3Crect x='37' y='2' width='12' height='6' fill='%23fff'/%3E%3C/g%3E%3C!-- Header --%3E%3Ctext x='20' y='60' font-family='-apple-system' font-size='22' font-weight='700' fill='%23fff'%3EGood morning%3C/text%3E%3Ccircle cx='230' cy='55' r='10' fill='%23333'/%3E%3Cpath d='M 226,51 L 226,59 M 230,51 L 230,59 M 234,51 L 234,59' stroke='%23b3b3b3' stroke-width='1'/%3E%3C!-- Top hits tiles --%3E%3Crect x='20' y='80' width='108' height='50' fill='%23282828' rx='6'/%3E%3Crect x='25' y='85' width='25' height='25' fill='%23ff6b35' rx='3'/%3E%3Ctext x='55' y='95' font-family='-apple-system' font-size='10' font-weight='600' fill='%23fff'%3EToday's%3C/text%3E%3Ctext x='55' y='107' font-family='-apple-system' font-size='10' font-weight='600' fill='%23fff'%3ETop Hits%3C/text%3E%3Ctext x='55' y='120' font-family='-apple-system' font-size='8' fill='%23b3b3b3'%3EAlan Gospel%3C/text%3E%3Crect x='138' y='80' width='108' height='50' fill='%23282828' rx='6'/%3E%3Crect x='143' y='85' width='25' height='25' fill='%23ffa500' rx='3'/%3E%3Ctext x='173' y='95' font-family='-apple-system' font-size='10' font-weight='600' fill='%23fff'%3EDope Labs%3C/text%3E%3Ctext x='173' y='107' font-family='-apple-system' font-size='10' font-weight='600' fill='%23fff'%3EChill Hits%3C/text%3E%3Crect x='20' y='140' width='108' height='50' fill='%23282828' rx='6'/%3E%3Crect x='25' y='145' width='25' height='25' fill='%23e22134' rx='3'/%3E%3Ctext x='55' y='155' font-family='-apple-system' font-size='10' font-weight='600' fill='%23fff'%3ELattes to Lattes%3C/text%3E%3Ctext x='55' y='175' font-family='-apple-system' font-size='8' fill='%23b3b3b3'%3ELatte to Lattes%3C/text%3E%3Crect x='138' y='140' width='108' height='50' fill='%23282828' rx='6'/%3E%3Crect x='143' y='145' width='25' height='25' fill='%23f59e0b' rx='3'/%3E%3Ctext x='173' y='155' font-family='-apple-system' font-size='9' font-weight='600' fill='%23fff'%3ESmall Doses with%3C/text%3E%3Ctext x='173' y='167' font-family='-apple-system' font-size='9' font-weight='600' fill='%23fff'%3EAmanda Seales%3C/text%3E%3C!-- Made For You --%3E%3Ctext x='20' y='225' font-family='-apple-system' font-size='18' font-weight='700' fill='%23fff'%3EMade For You%3C/text%3E%3Crect x='20' y='240' width='100' height='120' fill='%235038a0' rx='8'/%3E%3Ctext x='70' y='270' font-family='-apple-system' font-size='32' font-weight='300' fill='%23fff' text-anchor='middle'%3E∞%3C/text%3E%3Ctext x='25' y='330' font-family='-apple-system' font-size='12' font-weight='700' fill='%23fff'%3EOn Repeat%3C/text%3E%3Ctext x='25' y='345' font-family='-apple-system' font-size='9' fill='%23b3b3b3'%3EThe songs you can't%3C/text%3E%3Ctext x='25' y='355' font-family='-apple-system' font-size='9' fill='%23b3b3b3'%3Eget enough of right now.%3C/text%3E%3Crect x='130' y='240' width='100' height='120' fill='%23ff6b6b' rx='8'/%3E%3Cg transform='translate(160,260)'%3E%3Cpath d='M 0,10 Q 20,-10 40,10 Q 20,30 0,10' fill='%23fff'/%3E%3Cpath d='M 0,25 Q 20,5 40,25 Q 20,45 0,25' fill='%23fff' opacity='0.7'/%3E%3C/g%3E%3Ctext x='135' y='330' font-family='-apple-system' font-size='12' font-weight='700' fill='%23fff'%3EYour Discover%3C/text%3E%3Ctext x='135' y='343' font-family='-apple-system' font-size='12' font-weight='700' fill='%23fff'%3EWeekly%3C/text%3E%3Ctext x='135' y='355' font-family='-apple-system' font-size='9' fill='%23b3b3b3'%3EYour weekly mixtape%3C/text%3E%3C!-- Popular playlists --%3E%3Ctext x='20' y='385' font-family='-apple-system' font-size='16' font-weight='700' fill='%23fff'%3EPopular playlists%3C/text%3E%3Crect x='20' y='400' width='80' height='60' fill='%234a90e2' rx='8'/%3E%3Ctext x='25' y='420' font-family='-apple-system' font-size='10' font-weight='600' fill='%23fff'%3EFeelin' Good%3C/text%3E%3Crect x='110' y='400' width='80' height='60' fill='%23e11d48' rx='8'/%3E%3Ctext x='115' y='420' font-family='-apple-system' font-size='10' font-weight='600' fill='%23fff'%3EPumped%3C/text%3E%3C!-- Bottom nav --%3E%3Crect x='0' y='480' width='272' height='24' fill='%23000'/%3E%3Cg transform='translate(40,488)'%3E%3Ccircle cx='0' cy='4' r='2' fill='%23fff'/%3E%3Ctext x='0' y='15' font-family='-apple-system' font-size='8' fill='%23fff' text-anchor='middle'%3EHome%3C/text%3E%3C/g%3E%3Cg transform='translate(136,488)'%3E%3Ccircle cx='0' cy='4' r='4' fill='none' stroke='%23b3b3b3' stroke-width='1'/%3E%3Ctext x='0' y='15' font-family='-apple-system' font-size='8' fill='%23b3b3b3' text-anchor='middle'%3ESearch%3C/text%3E%3C/g%3E%3Cg transform='translate(232,488)'%3E%3Crect x='-6' y='0' width='12' height='8' fill='none' stroke='%23b3b3b3' stroke-width='1'/%3E%3Ctext x='0' y='15' font-family='-apple-system' font-size='8' fill='%23b3b3b3' text-anchor='middle'%3EYour Library%3C/text%3E%3C/g%3E%3C/svg%3E`;
+            }
+
+            createEmailImage() {
+                // Exact recreation of your Gmail inbox screenshot
+                return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='272' height='504' viewBox='0 0 272 504'%3E%3Crect width='272' height='504' fill='%23f8f9fa'/%3E%3C!-- Status bar --%3E%3Ctext x='20' y='25' font-family='-apple-system' font-size='12' font-weight='500' fill='%23000'%3E9:23%3C/text%3E%3Ccircle cx='240' cy='20' r='3' fill='%23000'/%3E%3Cpath d='M 245,17 L 252,17 M 245,20 L 252,20 M 245,23 L 250,23' stroke='%23000' stroke-width='1'/%3E%3C!-- Search bar --%3E%3Crect x='20' y='35' width='200' height='32' fill='%23f1f3f4' rx='16'/%3E%3Cpath d='M 30,47 L 33,47 M 30,51 L 33,51 M 30,55 L 33,55' stroke='%23666' stroke-width='1'/%3E%3Ctext x='40' y='53' font-family='-apple-system' font-size='12' fill='%23666'%3ESearch in mail%3C/text%3E%3Ccircle cx='200' cy='51' r='8' fill='%23ea4335'/%3E%3C!-- Inbox header --%3E%3Ctext x='20' y='88' font-family='-apple-system' font-size='14' font-weight='400' fill='%235f6368'%3EInbox%3C/text%3E%3Cpath d='M 240,82 L 245,87 L 240,92' stroke='%235f6368' stroke-width='1' fill='none'/%3E%3C!-- Email 1 - Hilstone --%3E%3Crect x='20' y='100' width='232' height='70' fill='%23fff' rx='8'/%3E%3Ccircle cx='40' cy='120' r='12' fill='%234285f4'/%3E%3Ctext x='40' y='125' font-family='-apple-system' font-size='10' font-weight='600' fill='%23fff' text-anchor='middle'%3EH%3C/text%3E%3Ctext x='60' y='118' font-family='-apple-system' font-size='13' font-weight='600' fill='%23202124'%3EHilstone%3C/text%3E%3Ctext x='220' y='118' font-family='-apple-system' font-size='10' fill='%235f6368'%3E3:12 PM%3C/text%3E%3Ctext x='60' y='133' font-family='-apple-system' font-size='12' fill='%235f6368'%3EGet moving faster this summer!%3C/text%3E%3Ctext x='60' y='148' font-family='-apple-system' font-size='11' fill='%235f6368'%3EReady to go?%3C/text%3E%3C!-- Email 2 - Everlight --%3E%3Crect x='20' y='180' width='232' height='70' fill='%23fff' rx='8'/%3E%3Ccircle cx='40' cy='200' r='12' fill='%23333'/%3E%3Ctext x='40' y='205' font-family='-apple-system' font-size='10' font-weight='600' fill='%23fff' text-anchor='middle'%3EE%3C/text%3E%3Ctext x='60' y='198' font-family='-apple-system' font-size='13' font-weight='600' fill='%23202124'%3EEverlight%3C/text%3E%3Ctext x='220' y='198' font-family='-apple-system' font-size='10' fill='%235f6368'%3E3:10 PM%3C/text%3E%3Ctext x='60' y='213' font-family='-apple-system' font-size='12' fill='%235f6368'%3ESave 20%25 this week only%3C/text%3E%3Ctext x='60' y='228' font-family='-apple-system' font-size='11' fill='%235f6368'%3EDear Ava, Do you want to save here at Eve...%3C/text%3E%3C!-- Email 3 - Emily Cook --%3E%3Crect x='20' y='260' width='232' height='70' fill='%23fff' rx='8'/%3E%3Ccircle cx='40' cy='280' r='12' fill='%23ea4335'/%3E%3Ctext x='40' y='285' font-family='-apple-system' font-size='10' font-weight='600' fill='%23fff' text-anchor='middle'%3EE%3C/text%3E%3Ctext x='60' y='278' font-family='-apple-system' font-size='13' font-weight='600' fill='%23202124'%3EEmily Cook%3C/text%3E%3Ctext x='220' y='278' font-family='-apple-system' font-size='10' fill='%235f6368'%3E1:43 PM%3C/text%3E%3Ctext x='60' y='293' font-family='-apple-system' font-size='12' fill='%235f6368'%3ENew York City Market Updates%3C/text%3E%3Ctext x='60' y='308' font-family='-apple-system' font-size='11' fill='%235f6368'%3EI wanted to share some quick info.%3C/text%3E%3C!-- Additional emails --%3E%3Crect x='20' y='340' width='232' height='70' fill='%23fff' rx='8'/%3E%3Ccircle cx='40' cy='360' r='12' fill='%239c27b0'/%3E%3Ctext x='40' y='365' font-family='-apple-system' font-size='10' font-weight='600' fill='%23fff' text-anchor='middle'%3EA%3C/text%3E%3Ctext x='60' y='358' font-family='-apple-system' font-size='13' font-weight='600' fill='%23202124'%3EAirton Credit Union%3C/text%3E%3Ctext x='220' y='358' font-family='-apple-system' font-size='10' fill='%235f6368'%3E1:21 PM%3C/text%3E%3Ctext x='60' y='373' font-family='-apple-system' font-size='12' fill='%235f6368'%3EYour Card Ending in 1838%3C/text%3E%3Ctext x='60' y='388' font-family='-apple-system' font-size='11' fill='%235f6368'%3EPlease visit airtoncu.com for important...%3C/text%3E%3Crect x='20' y='420' width='232' height='70' fill='%23fff' rx='8'/%3E%3Ccircle cx='40' cy='440' r='12' fill='%233f51b5'/%3E%3Ctext x='40' y='445' font-family='-apple-system' font-size='10' font-weight='600' fill='%23fff' text-anchor='middle'%3ES%3C/text%3E%3Ctext x='60' y='438' font-family='-apple-system' font-size='13' font-weight='600' fill='%23202124'%3ESoundtrack%3C/text%3E%3Ctext x='220' y='438' font-family='-apple-system' font-size='10' fill='%235f6368'%3E12:09 PM%3C/text%3E%3Ctext x='60' y='453' font-family='-apple-system' font-size='12' fill='%235f6368'%3EBilly Eilish sends you something special%3C/text%3E%3Ctext x='60' y='468' font-family='-apple-system' font-size='11' fill='%235f6368'%3EThanks for being a fan. To celebrate her new...%3C/text%3E%3C/svg%3E`;
+            }
+
+            createWikipediaImage() {
+                // Exact recreation of your Wikipedia mobile screenshot
+                return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='272' height='504' viewBox='0 0 272 504'%3E%3Crect width='272' height='504' fill='%23000'/%3E%3C!-- Status bar --%3E%3Ctext x='20' y='25' font-family='-apple-system' font-size='12' font-weight='600' fill='%23fff'%3E12:56%3C/text%3E%3Cpath d='M 200,18 L 203,18 M 200,21 L 203,21' stroke='%23fff' stroke-width='1'/%3E%3Crect x='210' y='17' width='15' height='8' fill='none' stroke='%23fff' stroke-width='1'/%3E%3Crect x='212' y='19' width='11' height='4' fill='%23fff'/%3E%3Crect x='230' y='19' width='8' height='4' fill='%23fff' rx='1'/%3E%3Crect x='245' y='17' width='20' height='10' fill='none' stroke='%23fff' stroke-width='1' rx='2'/%3E%3Crect x='247' y='19' width='14' height='6' fill='%23fff'/%3E%3C!-- Wikipedia logo and title --%3E%3Ccircle cx='70' cy='80' r='25' fill='%23fff'/%3E%3Ctext x='70' y='78' font-family='Georgia' font-size='8' fill='%23000' text-anchor='middle'%3EΩ%3C/text%3E%3Ctext x='70' y='88' font-family='Arial' font-size='6' fill='%23000' text-anchor='middle'%3E各 П%3C/text%3E%3Ctext x='105' y='75' font-family='-apple-system' font-size='18' font-weight='400' fill='%23fff'%3EWIKIPEDIA%3C/text%3E%3Ctext x='105' y='92' font-family='-apple-system' font-size='11' fill='%23a2a9b1'%3EThe Free Encyclopedia%3C/text%3E%3C!-- Search bar --%3E%3Crect x='20' y='120' width='190' height='32' fill='%23333' rx='4'/%3E%3Ctext x='30' y='140' font-family='-apple-system' font-size='12' fill='%23a2a9b1'%3EEN%3C/text%3E%3Cpath d='M 190,132 L 194,136 L 190,140' stroke='%23a2a9b1' stroke-width='1' fill='none'/%3E%3Crect x='220' y='128' width='24' height='16' fill='%234a90e2' rx='8'/%3E%3Cpath d='M 228,134 L 232,138 L 240,130' stroke='%23fff' stroke-width='2' fill='none'/%3E%3C!-- Language grid --%3E%3Ctext x='30' y='180' font-family='-apple-system' font-size='14' font-weight='600' fill='%234a90e2'%3EEnglish%3C/text%3E%3Ctext x='30' y='198' font-family='-apple-system' font-size='11' fill='%23a2a9b1'%3E7,009,000+ articles%3C/text%3E%3Ctext x='146' y='180' font-family='-apple-system' font-size='14' font-weight='600' fill='%234a90e2'%3E日本語%3C/text%3E%3Ctext x='146' y='198' font-family='-apple-system' font-size='11' fill='%23a2a9b1'%3E1,462,000+ 記事%3C/text%3E%3Ctext x='220' y='180' font-family='-apple-system' font-size='14' font-weight='600' fill='%234a90e2'%3EРусский%3C/text%3E%3Ctext x='220' y='198' font-family='-apple-system' font-size='11' fill='%23a2a9b1'%3E2 050 000+%3C/text%3E%3Ctext x='220' y='212' font-family='-apple-system' font-size='11' fill='%23a2a9b1'%3Eстатей%3C/text%3E%3Ctext x='30' y='240' font-family='-apple-system' font-size='14' font-weight='600' fill='%234a90e2'%3EDeutsch%3C/text%3E%3Ctext x='30' y='258' font-family='-apple-system' font-size='11' fill='%23a2a9b1'%3E3.024.000+ Artikel%3C/text%3E%3Ctext x='146' y='240' font-family='-apple-system' font-size='14' font-weight='600' fill='%234a90e2'%3EEspañol%3C/text%3E%3Ctext x='146' y='258' font-family='-apple-system' font-size='11' fill='%23a2a9b1'%3E2.041.000+ artículos%3C/text%3E%3Ctext x='220' y='240' font-family='-apple-system' font-size='14' font-weight='600' fill='%234a90e2'%3EFrançais%3C/text%3E%3Ctext x='220' y='258' font-family='-apple-system' font-size='11' fill='%23a2a9b1'%3E2690000+%3C/text%3E%3Ctext x='220' y='272' font-family='-apple-system' font-size='11' fill='%23a2a9b1'%3Earticles%3C/text%3E%3Ctext x='30' y='300' font-family='-apple-system' font-size='14' font-weight='600' fill='%234a90e2'%3E中文%3C/text%3E%3Ctext x='30' y='318' font-family='-apple-system' font-size='11' fill='%23a2a9b1'%3E1,482,000+ 条目/%3C/text%3E%3Ctext x='30' y='332' font-family='-apple-system' font-size='11' fill='%23a2a9b1'%3E條目%3C/text%3E%3Ctext x='146' y='300' font-family='-apple-system' font-size='14' font-weight='600' fill='%234a90e2'%3EItaliano%3C/text%3E%3Ctext x='146' y='318' font-family='-apple-system' font-size='11' fill='%23a2a9b1'%3E1.922.000+ voci%3C/text%3E%3Ctext x='220' y='300' font-family='-apple-system' font-size='14' font-weight='600' fill='%234a90e2'%3EPortuguês%3C/text%3E%3Ctext x='220' y='318' font-family='-apple-system' font-size='11' fill='%23a2a9b1'%3E1.148.000+%3C/text%3E%3Ctext x='220' y='332' font-family='-apple-system' font-size='11' fill='%23a2a9b1'%3Eartigos%3C/text%3E%3Ctext x='30' y='370' font-family='-apple-system' font-size='14' font-weight='600' fill='%234a90e2'%3Eفارسی%3C/text%3E%3Ctext x='30' y='388' font-family='-apple-system' font-size='11' fill='%23a2a9b1'%3E+۱٬۴۳٬۰۰۰ مقاله%3C/text%3E%3C!-- Language selector --%3E%3Crect x='30' y='410' width='212' height='40' fill='%23333' rx='8'/%3E%3Ctext x='45' y='428' font-family='-apple-system' font-size='10' fill='%234a90e2'%3E🌐%3C/text%3E%3Ctext x='60' y='428' font-family='-apple-system' font-size='10' fill='%234a90e2'%3ERead Wikipedia in your language%3C/text%3E%3Cpath d='M 220,425 L 224,430 L 220,435' stroke='%23a2a9b1' stroke-width='1' fill='none'/%3E%3C!-- Wikimedia logo and footer --%3E%3Ccircle cx='136' cy='470' r='12' fill='%23fff'/%3E%3Cpath d='M 131,465 Q 136,460 141,465 Q 136,470 131,465 M 131,475 Q 136,470 141,475' stroke='%23000' stroke-width='1' fill='none'/%3E%3Ctext x='136' y='495' font-family='-apple-system' font-size='8' fill='%23a2a9b1' text-anchor='middle'%3EWikipedia is hosted by the Wikimedia Foundation, a non-profit%3C/text%3E%3C/svg%3E`;
+            }
+
+            createPugImage() {
+                // Exact recreation of your adorable pug with birthday hat photo
+                return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='272' height='504' viewBox='0 0 272 504'%3E%3Cdefs%3E%3CradialGradient id='bgGrad' cx='50%25' cy='40%25'%3E%3Cstop offset='0%25' stop-color='%23f4e4c1'/%3E%3Cstop offset='70%25' stop-color='%23e6d4a6'/%3E%3Cstop offset='100%25' stop-color='%23d4a574'/%3E%3C/radialGradient%3E%3CradialGradient id='pugFace' cx='50%25' cy='50%25'%3E%3Cstop offset='0%25' stop-color='%23e6c295'/%3E%3Cstop offset='70%25' stop-color='%23d4a574'/%3E%3Cstop offset='100%25' stop-color='%23c49764'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='272' height='504' fill='url(%23bgGrad)'/%3E%3C!-- Blurred background elements --%3E%3Cellipse cx='50' cy='400' rx='40' ry='20' fill='%23c49764' opacity='0.3'/%3E%3Cellipse cx='220' cy='450' rx='30' ry='15' fill='%23a67c52' opacity='0.3'/%3E%3Crect x='180' y='300' width='60' height='120' fill='%23b8926b' opacity='0.4' rx='10'/%3E%3C!-- Main pug --%3E%3Cg transform='translate(136,220)'%3E%3C!-- Main head shape --%3E%3Cellipse cx='0' cy='20' rx='55' ry='50' fill='url(%23pugFace)'/%3E%3C!-- Muzzle area --%3E%3Cellipse cx='0' cy='35' rx='40' ry='35' fill='%23c49764'/%3E%3Cellipse cx='0' cy='45' rx='30' ry='25' fill='%23b8926b'/%3E%3C!-- Eyes --%3E%3Cg%3E%3C!-- Eye sockets --%3E%3Cellipse cx='-20' cy='5' rx='15' ry='18' fill='%23a67c52'/%3E%3Cellipse cx='20' cy='5' rx='15' ry='18' fill='%23a67c52'/%3E%3C!-- Eyeballs --%3E%3Cellipse cx='-18' cy='8' rx='12' ry='15' fill='%23fff'/%3E%3Cellipse cx='18' cy='8' rx='12' ry='15' fill='%23fff'/%3E%3C!-- Irises --%3E%3Ccircle cx='-18' cy='12' r='8' fill='%23654321'/%3E%3Ccircle cx='18' cy='12' r='8' fill='%23654321'/%3E%3C!-- Pupils --%3E%3Ccircle cx='-18' cy='12' r='5' fill='%23000'/%3E%3Ccircle cx='18' cy='12' r='5' fill='%23000'/%3E%3C!-- Eye highlights --%3E%3Ccircle cx='-16' cy='10' r='2' fill='%23fff'/%3E%3Ccircle cx='20' cy='10' r='2' fill='%23fff'/%3E%3C/g%3E%3C!-- Distinctive pug wrinkles --%3E%3Cpath d='M -30,0 Q -25,-5 -20,0 Q -15,-3 -10,2' stroke='%23946b47' stroke-width='2' fill='none'/%3E%3Cpath d='M 10,2 Q 15,-3 20,0 Q 25,-5 30,0' stroke='%23946b47' stroke-width='2' fill='none'/%3E%3Cpath d='M -35,10 Q -30,5 -25,10' stroke='%23946b47' stroke-width='2' fill='none'/%3E%3Cpath d='M 25,10 Q 30,5 35,10' stroke='%23946b47' stroke-width='2' fill='none'/%3E%3Cpath d='M -25,25 Q -20,20 -15,25' stroke='%23946b47' stroke-width='1.5' fill='none'/%3E%3Cpath d='M 15,25 Q 20,20 25,25' stroke='%23946b47' stroke-width='1.5' fill='none'/%3E%3C!-- Forehead wrinkle --%3E%3Cpath d='M -15,-10 Q 0,-15 15,-10' stroke='%23946b47' stroke-width='1.5' fill='none'/%3E%3C!-- Nose --%3E%3Cellipse cx='0' cy='30' rx='8' ry='6' fill='%23333'/%3E%3Cellipse cx='-2' cy='28' rx='2' ry='1.5' fill='%23000'/%3E%3Cellipse cx='2' cy='28' rx='2' ry='1.5' fill='%23000'/%3E%3C!-- Mouth --%3E%3Cpath d='M -5,38 Q 0,43 5,38' stroke='%23333' stroke-width='2' fill='none'/%3E%3Cpath d='M 0,38 L 0,45' stroke='%23333' stroke-width='1.5'/%3E%3C!-- Ears --%3E%3Cellipse cx='-35' cy='-5' rx='12' ry='20' fill='%23b8926b' transform='rotate(-20)'/%3E%3Cellipse cx='35' cy='-5' rx='12' ry='20' fill='%23b8926b' transform='rotate(20)'/%3E%3Cellipse cx='-32' cy='-5' rx='6' ry='12' fill='%23946b47' transform='rotate(-20)'/%3E%3Cellipse cx='32' cy='-5' rx='6' ry='12' fill='%23946b47' transform='rotate(20)'/%3E%3C/g%3E%3C!-- Birthday hat --%3E%3Cg transform='translate(136,150)'%3E%3C!-- Hat main cone --%3E%3Cpath d='M -25,-10 L 25,-10 L 15,-60 L -15,-60 Z' fill='%2387ceeb'/%3E%3C!-- Hat pattern - polka dots --%3E%3Ccircle cx='-8' cy='-35' r='3' fill='%23ffd700'/%3E%3Ccircle cx='8' cy='-45' r='3' fill='%23ffd700'/%3E%3Ccircle cx='0' cy='-25' r='3' fill='%23ffd700'/%3E%3Ccircle cx='-12' cy='-50' r='2.5' fill='%23ffd700'/%3E%3Ccircle cx='12' cy='-30' r='2.5' fill='%23ffd700'/%3E%3Ccircle cx='-5' cy='-55' r='2' fill='%23ffd700'/%3E%3Ccircle cx='5' cy='-40' r='2' fill='%23ffd700'/%3E%3C!-- Hat elastic/band --%3E%3Crect x='-25' y='-12' width='50' height='4' fill='%2365a3d9'/%3E%3C!-- Pom pom on top --%3E%3Ccircle cx='0' cy='-65' r='8' fill='%23fff'/%3E%3Ccircle cx='-3' cy='-67' r='3' fill='%23f0f0f0'/%3E%3Ccircle cx='4' cy='-63' r='3' fill='%23f0f0f0'/%3E%3Ccircle cx='2' cy='-68' r='2' fill='%23f0f0f0'/%3E%3C!-- Pom pom texture --%3E%3Ccircle cx='-2' cy='-65' r='1' fill='%23e6e6e6'/%3E%3Ccircle cx='3' cy='-66' r='1' fill='%23e6e6e6'/%3E%3Ccircle cx='0' cy='-62' r='1' fill='%23e6e6e6'/%3E%3C/g%3E%3C!-- Body hint --%3E%3Cellipse cx='136' cy='350' rx='45' ry='30' fill='%23d4a574' opacity='0.8'/%3E%3Cellipse cx='136' cy='360' rx='35' ry='20' fill='%23f4e4c1'/%3E%3C!-- Soft lighting effect --%3E%3Cellipse cx='100' cy='180' rx='60' ry='40' fill='%23fff' opacity='0.1'/%3E%3C/svg%3E`;
+            }
+
+            createFlowersImage() {
+                // Exact recreation of your beautiful poppy flowers photo
+                return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='272' height='504' viewBox='0 0 272 504'%3E%3Cdefs%3E%3CradialGradient id='skyBg' cx='50%25' cy='20%25'%3E%3Cstop offset='0%25' stop-color='%2387ceeb'/%3E%3Cstop offset='40%25' stop-color='%2365b8e0'/%3E%3Cstop offset='80%25' stop-color='%2350a05a'/%3E%3Cstop offset='100%25' stop-color='%23228b22'/%3E%3C/radialGradient%3E%3CradialGradient id='poppy1' cx='50%25' cy='50%25'%3E%3Cstop offset='0%25' stop-color='%23ffff00'/%3E%3Cstop offset='30%25' stop-color='%23ffa500'/%3E%3Cstop offset='70%25' stop-color='%23ff6347'/%3E%3Cstop offset='100%25' stop-color='%23dc143c'/%3E%3C/radialGradient%3E%3CradialGradient id='poppy2' cx='50%25' cy='50%25'%3E%3Cstop offset='0%25' stop-color='%23ffd700'/%3E%3Cstop offset='40%25' stop-color='%23ff8c00'/%3E%3Cstop offset='80%25' stop-color='%23ff4500'/%3E%3Cstop offset='100%25' stop-color='%23b22222'/%3E%3C/radialGradient%3E%3ClinearGradient id='stem' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2390ee90'/%3E%3Cstop offset='50%25' stop-color='%23228b22'/%3E%3Cstop offset='100%25' stop-color='%23006400'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='272' height='504' fill='url(%23skyBg)'/%3E%3Cg opacity='0.6'%3E%3Cellipse cx='60' cy='250' rx='40' ry='25' fill='%239370db'/%3E%3Cellipse cx='200' cy='280' rx='35' ry='20' fill='%23ff69b4'/%3E%3Cellipse cx='30' cy='320' rx='25' ry='15' fill='%23dda0dd'/%3E%3Cellipse cx='240' cy='300' rx='30' ry='18' fill='%23da70d6'/%3E%3Cellipse cx='120' cy='380' rx='45' ry='25' fill='%23228b22'/%3E%3C/g%3E%3Cg transform='translate(70,180)'%3E%3Cline x1='0' y1='100' x2='3' y2='280' stroke='url(%23stem)' stroke-width='6'/%3E%3Cg transform='rotate(-5)'%3E%3Cpath d='M -20,-8 Q -35,-25 -25,-40 Q -10,-45 5,-40 Q 15,-25 15,-8 Q 10,8 0,12 Q -10,8 -20,-8 Z' fill='url(%23poppy1)' opacity='0.9'/%3E%3C/g%3E%3Cg transform='rotate(25)'%3E%3Cpath d='M -18,-10 Q -33,-27 -23,-42 Q -8,-47 7,-42 Q 17,-27 17,-10 Q 12,6 2,10 Q -8,6 -18,-10 Z' fill='url(%23poppy1)' opacity='0.9'/%3E%3C/g%3E%3Cg transform='rotate(85)'%3E%3Cpath d='M -16,-12 Q -31,-29 -21,-44 Q -6,-49 9,-44 Q 19,-29 19,-12 Q 14,4 4,8 Q -6,4 -16,-12 Z' fill='url(%23poppy1)' opacity='0.9'/%3E%3C/g%3E%3Cg transform='rotate(135)'%3E%3Cpath d='M -14,-14 Q -29,-31 -19,-46 Q -4,-51 11,-46 Q 21,-31 21,-14 Q 16,2 6,6 Q -4,2 -14,-14 Z' fill='url(%23poppy1)' opacity='0.9'/%3E%3C/g%3E%3Ccircle cx='0' cy='-12' r='6' fill='%23333'/%3E%3Ccircle cx='0' cy='-12' r='3' fill='%23000'/%3E%3C/g%3E%3Cg transform='translate(140,160)'%3E%3Cline x1='-2' y1='120' x2='1' y2='300' stroke='url(%23stem)' stroke-width='6'/%3E%3Cg transform='rotate(10)'%3E%3Cpath d='M -22,-6 Q -37,-23 -27,-38 Q -12,-43 3,-38 Q 13,-23 13,-6 Q 8,10 -2,14 Q -12,10 -22,-6 Z' fill='url(%23poppy2)' opacity='0.85'/%3E%3C/g%3E%3Cg transform='rotate(50)'%3E%3Cpath d='M -20,-8 Q -35,-25 -25,-40 Q -10,-45 5,-40 Q 15,-25 15,-8 Q 10,8 0,12 Q -10,8 -20,-8 Z' fill='url(%23poppy2)' opacity='0.85'/%3E%3C/g%3E%3Cg transform='rotate(100)'%3E%3Cpath d='M -18,-10 Q -33,-27 -23,-42 Q -8,-47 7,-42 Q 17,-27 17,-10 Q 12,6 2,10 Q -8,6 -18,-10 Z' fill='url(%23poppy2)' opacity='0.85'/%3E%3C/g%3E%3Cg transform='rotate(150)'%3E%3Cpath d='M -16,-12 Q -31,-29 -21,-44 Q -6,-49 9,-44 Q 19,-29 19,-12 Q 14,4 4,8 Q -6,4 -16,-12 Z' fill='url(%23poppy2)' opacity='0.85'/%3E%3C/g%3E%3Ccircle cx='0' cy='-10' r='7' fill='%23333'/%3E%3Ccircle cx='0' cy='-10' r='4' fill='%23000'/%3E%3C/g%3E%3Cg transform='translate(210,200)'%3E%3Cline x1='2' y1='80' x2='-1' y2='260' stroke='url(%23stem)' stroke-width='6'/%3E%3Cg transform='rotate(-15)'%3E%3Cpath d='M -19,-9 Q -34,-26 -24,-41 Q -9,-46 6,-41 Q 16,-26 16,-9 Q 11,7 1,11 Q -9,7 -19,-9 Z' fill='url(%23poppy1)' opacity='0.9'/%3E%3C/g%3E%3Cg transform='rotate(30)'%3E%3Cpath d='M -17,-11 Q -32,-28 -22,-43 Q -7,-48 8,-43 Q 18,-28 18,-11 Q 13,5 3,9 Q -7,5 -17,-11 Z' fill='url(%23poppy1)' opacity='0.9'/%3E%3C/g%3E%3Cg transform='rotate(75)'%3E%3Cpath d='M -15,-13 Q -30,-30 -20,-45 Q -5,-50 10,-45 Q 20,-30 20,-13 Q 15,3 5,7 Q -5,3 -15,-13 Z' fill='url(%23poppy1)' opacity='0.9'/%3E%3C/g%3E%3Cg transform='rotate(120)'%3E%3Cpath d='M -13,-15 Q -28,-32 -18,-47 Q -3,-52 12,-47 Q 22,-32 22,-15 Q 17,1 7,5 Q -3,1 -13,-15 Z' fill='url(%23poppy1)' opacity='0.9'/%3E%3C/g%3E%3Ccircle cx='0' cy='-14' r='5' fill='%23333'/%3E%3Ccircle cx='0' cy='-14' r='2' fill='%23000'/%3E%3C/g%3E%3Cg transform='translate(120,270)'%3E%3Cline x1='1' y1='50' x2='-2' y2='200' stroke='url(%23stem)' stroke-width='6'/%3E%3Cg transform='rotate(5)'%3E%3Cpath d='M -25,-5 Q -42,-25 -30,-45 Q -12,-52 8,-45 Q 20,-25 18,-5 Q 12,15 0,20 Q -12,15 -25,-5 Z' fill='url(%23poppy2)' opacity='0.95'/%3E%3C/g%3E%3Cg transform='rotate(60)'%3E%3Cpath d='M -23,-7 Q -40,-27 -28,-47 Q -10,-54 10,-47 Q 22,-27 20,-7 Q 14,13 2,18 Q -10,13 -23,-7 Z' fill='url(%23poppy2)' opacity='0.95'/%3E%3C/g%3E%3Cg transform='rotate(110)'%3E%3Cpath d='M -21,-9 Q -38,-29 -26,-49 Q -8,-56 12,-49 Q 24,-29 22,-9 Q 16,11 4,16 Q -8,11 -21,-9 Z' fill='url(%23poppy2)' opacity='0.95'/%3E%3C/g%3E%3Cg transform='rotate(160)'%3E%3Cpath d='M -19,-11 Q -36,-31 -24,-51 Q -6,-58 14,-51 Q 26,-31 24,-11 Q 18,9 6,14 Q -6,9 -19,-11 Z' fill='url(%23poppy2)' opacity='0.95'/%3E%3C/g%3E%3Ccircle cx='0' cy='-8' r='8' fill='%23333'/%3E%3Ccircle cx='0' cy='-8' r='5' fill='%23000'/%3E%3C/g%3E%3Cg transform='translate(100,340)'%3E%3Cline x1='-1' y1='30' x2='2' y2='140' stroke='url(%23stem)' stroke-width='6'/%3E%3Cg transform='rotate(-10)'%3E%3Cpath d='M -24,-4 Q -41,-24 -29,-44 Q -11,-51 9,-44 Q 21,-24 19,-4 Q 13,14 1,19 Q -11,14 -24,-4 Z' fill='url(%23poppy1)' opacity='0.92'/%3E%3C/g%3E%3Cg transform='rotate(45)'%3E%3Cpath d='M -22,-6 Q -39,-26 -27,-46 Q -9,-53 11,-46 Q 23,-26 21,-6 Q 15,12 3,17 Q -9,12 -22,-6 Z' fill='url(%23poppy1)' opacity='0.92'/%3E%3C/g%3E%3Cg transform='rotate(95)'%3E%3Cpath d='M -20,-8 Q -37,-28 -25,-48 Q -7,-55 13,-48 Q 25,-28 23,-8 Q 17,10 5,15 Q -7,10 -20,-8 Z' fill='url(%23poppy1)' opacity='0.92'/%3E%3C/g%3E%3Cg transform='rotate(145)'%3E%3Cpath d='M -18,-10 Q -35,-30 -23,-50 Q -5,-57 15,-50 Q 27,-30 25,-10 Q 19,8 7,13 Q -5,8 -18,-10 Z' fill='url(%23poppy1)' opacity='0.92'/%3E%3C/g%3E%3Ccircle cx='0' cy='-7' r='6' fill='%23333'/%3E%3Ccircle cx='0' cy='-7' r='3' fill='%23000'/%3E%3C/g%3E%3Cg transform='translate(60,300)'%3E%3Cline x1='0' y1='0' x2='3' y2='120' stroke='url(%23stem)' stroke-width='4'/%3E%3Cellipse cx='0' cy='-8' rx='5' ry='12' fill='%23556b2f'/%3E%3C/g%3E%3Cg transform='translate(240,370)'%3E%3Cline x1='0' y1='0' x2='-2' y2='80' stroke='url(%23stem)' stroke-width='3'/%3E%3Cellipse cx='0' cy='-5' rx='3' ry='8' fill='%23556b2f'/%3E%3C/g%3E%3C/svg%3E`;
