@@ -23,6 +23,9 @@ const WorkingCameraDemo: React.FC<WorkingCameraDemoProps> = ({
     const blurAmount = Math.abs(readingVisionDiopter - calibrationValue) * 0.5;
     console.log(`📊 WorkingCameraDemo: Calculated blur: ${blurAmount.toFixed(2)}px (readingVision: ${readingVisionDiopter}, calibration: ${calibrationValue})`);
 
+    // Global reference to apply vision correction function
+    let applyVisionCorrectionRef: (() => void) | null = null;
+
     // Create the camera interface with vanilla JavaScript
     const createCameraInterface = () => {
       const container = containerRef.current!;
@@ -161,6 +164,27 @@ const WorkingCameraDemo: React.FC<WorkingCameraDemoProps> = ({
         `;
       };
 
+      // Function to apply vision correction filters to camera elements
+      const applyVisionCorrection = () => {
+        const filterValue = `blur(${blurAmount}px) contrast(1.15) brightness(1.05)`;
+        console.log(`🎯 WorkingCameraDemo: Applying vision correction filter: ${filterValue}`);
+        
+        // Apply filter to video element
+        if (video) {
+          video.style.filter = filterValue;
+          console.log("✅ WorkingCameraDemo: Filter applied to video element");
+        }
+        
+        // Apply filter to canvas element
+        if (canvas) {
+          canvas.style.filter = filterValue;
+          console.log("✅ WorkingCameraDemo: Filter applied to canvas element");
+        }
+      };
+
+      // Set global reference for external updates
+      applyVisionCorrectionRef = applyVisionCorrection;
+
       // Start camera function
       const startCamera = async () => {
         console.log("🚀 WorkingCameraDemo: startCamera() called - DIRECT EXECUTION!");
@@ -202,6 +226,9 @@ const WorkingCameraDemo: React.FC<WorkingCameraDemoProps> = ({
             
             video.play().then(() => {
               console.log("✅ WorkingCameraDemo: Video playing!");
+              
+              // CRITICAL: Apply vision correction filters to camera elements
+              applyVisionCorrection();
               
               // Update UI
               isActive = true;
@@ -296,11 +323,7 @@ const WorkingCameraDemo: React.FC<WorkingCameraDemoProps> = ({
             // Clear canvas first
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Apply vision correction filter directly to canvas CSS
-            const filterValue = `blur(${blurAmount}px) contrast(1.15) brightness(1.05)`;
-            canvas.style.filter = filterValue;
-            
-            // Draw video frame WITHOUT canvas context filter (use CSS filter instead)
+            // Draw video frame (CSS filter is applied to entire canvas element)
             ctx.filter = "none";
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             
@@ -354,6 +377,25 @@ const WorkingCameraDemo: React.FC<WorkingCameraDemoProps> = ({
         containerRef.current.innerHTML = "";
       }
     };
+  }, [readingVisionDiopter, calibrationValue]);
+
+  // CRITICAL: useEffect to update blur when props change (slider movement)
+  useEffect(() => {
+    const newBlurAmount = Math.abs(readingVisionDiopter - calibrationValue) * 0.5;
+    console.log(`🔄 WorkingCameraDemo: Props changed! New blur: ${newBlurAmount.toFixed(2)}px`);
+    
+    // Apply new blur to existing camera elements if they exist
+    if (containerRef.current) {
+      const video = containerRef.current.querySelector('#camera-video') as HTMLVideoElement;
+      const canvas = containerRef.current.querySelector('#camera-canvas') as HTMLCanvasElement;
+      
+      if (video && canvas) {
+        const filterValue = `blur(${newBlurAmount}px) contrast(1.15) brightness(1.05)`;
+        video.style.filter = filterValue;
+        canvas.style.filter = filterValue;
+        console.log(`✅ WorkingCameraDemo: Updated filters to: ${filterValue}`);
+      }
+    }
   }, [readingVisionDiopter, calibrationValue]);
 
   return <div ref={containerRef} />;
