@@ -14,23 +14,22 @@ const CameraDemo: React.FC<CameraDemoProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const animationFrameRef = useRef<number>();
+  const processingRef = useRef<boolean>(false);
 
   const [cameraState, setCameraState] = useState<
     "idle" | "requesting" | "active" | "denied" | "error"
   >("idle");
   const [cameraError, setCameraError] = useState<string>("");
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
-  // Calculate vision correction blur using same algorithm as other content
+  // Calculate vision correction blur using the specified algorithm
   const calculateCameraBlur = (
     sliderValue: number,
     calibration: number,
   ): number => {
     const distanceFromOptimal = Math.abs(sliderValue - calibration);
-    const blurPerDiopter = 0.6;
-    const minimumBlur = 0.05;
-    return distanceFromOptimal === 0
-      ? minimumBlur
-      : distanceFromOptimal * blurPerDiopter;
+    // Using the specified blur calculation: Math.abs(readingVision - calibration) * 0.3
+    return distanceFromOptimal * 0.3;
   };
 
   const cameraBlur = calculateCameraBlur(
@@ -39,6 +38,7 @@ const CameraDemo: React.FC<CameraDemoProps> = ({
   );
 
   const requestCameraAccess = async () => {
+    console.log("🎥 CameraDemo: Requesting camera access...");
     setCameraState("requesting");
     setCameraError("");
 
@@ -59,15 +59,20 @@ const CameraDemo: React.FC<CameraDemoProps> = ({
 
       const primaryConstraints: MediaStreamConstraints = {
         video: {
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
+          width: { ideal: 1280, max: 1920 },
+          height: { ideal: 720, max: 1080 },
           facingMode: "user",
+          frameRate: { ideal: 30 },
         },
         audio: false,
       };
 
       const fallbackConstraints: MediaStreamConstraints = {
-        video: { facingMode: "user" },
+        video: { 
+          facingMode: "user",
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+        },
         audio: false,
       };
 
@@ -88,49 +93,87 @@ const CameraDemo: React.FC<CameraDemoProps> = ({
       let stream: MediaStream;
 
       try {
+        console.log("🎥 CameraDemo: Trying primary constraints...");
         // Try primary constraints with timeout
         stream = await Promise.race([
           navigator.mediaDevices.getUserMedia(primaryConstraints),
           timeoutPromise,
         ]);
+        console.log("✅ CameraDemo: Primary constraints successful");
       } catch (error) {
+        console.warn("⚠️ CameraDemo: Primary constraints failed, trying fallback...");
         // Handle specific errors and try fallback
         if (
           error instanceof DOMException &&
           error.name === "OverconstrainedError"
         ) {
-          console.warn(
-            "High resolution not supported, trying fallback constraints",
-          );
           stream = await Promise.race([
             navigator.mediaDevices.getUserMedia(fallbackConstraints),
             timeoutPromise,
           ]);
+          console.log("✅ CameraDemo: Fallback constraints successful");
         } else {
           throw error;
         }
       }
 
+      // Store the stream reference
       streamRef.current = stream;
+      console.log("📹 CameraDemo: Stream acquired, setting up video element...");
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current
-            ?.play()
-            .then(() => {
-              setCameraState("active");
-              startVisionProcessing();
-            })
-            .catch((playError) => {
-              console.error("Video play error:", playError);
-              setCameraError("Failed to start video playback");
-              setCameraState("error");
-            });
-        };
+        
+        // Set video properties for better compatibility
+        videoRef.current.autoplay = true;
+        videoRef.current.playsInline = true;
+        videoRef.current.muted = true;
+
+        // Wait for video to be ready
+        const videoReady = new Promise<void>((resolve, reject) => {
+          const video = videoRef.current;
+          if (!video) {
+            reject(new Error("Video element not found"));
+            return;
+          }
+
+          const onLoadedData = () => {
+            console.log("📹 CameraDemo: Video loaded, starting playback...");
+            video.removeEventListener("loadeddata", onLoadedData);
+            video.removeEventListener("error", onError);
+            resolve();
+          };
+
+          const onError = (e: Event) => {
+            console.error("❌ CameraDemo: Video error:", e);
+            video.removeEventListener("loadeddata", onLoadedData);
+            video.removeEventListener("error", onError);
+            reject(new Error("Video loading failed"));
+          };
+
+          video.addEventListener("loadeddata", onLoadedData);
+          video.addEventListener("error", onError);
+
+          // Fallback timeout
+          setTimeout(() => {
+            video.removeEventListener("loadeddata", onLoadedData);
+            video.removeEventListener("error", onError);
+            reject(new Error("Video loading timeout"));
+          }, 5000);
+        });
+
+        // Wait for video to be ready, then start processing
+        await videoReady;
+        
+        await videoRef.current.play();
+        console.log("✅ CameraDemo: Video playing, setting up canvas processing...");
+        
+        setCameraState("active");
+        setIsProcessing(true);
+        startVisionProcessing();
       }
     } catch (error) {
-      console.error("Camera access error:", error);
+      console.error("❌ CameraDemo: Camera access error:", error);
 
       // Provide helpful error messages
       let errorMessage = "Camera access failed";
@@ -172,79 +215,155 @@ const CameraDemo: React.FC<CameraDemoProps> = ({
   };
 
   const stopCamera = () => {
+    console.log("🛑 CameraDemo: Stopping camera...");
+    
+    // Stop the processing loop
+    setIsProcessing(false);
+    processingRef.current = false;
+
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current.getTracks().forEach((track) => {
+        track.stop();
+        console.log("🛑 CameraDemo: Stopped track:", track.kind);
+      });
       streamRef.current = null;
     }
 
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = undefined;
+    }
+
+    // Clear video element
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+
+    // Clear canvas
+    if (canvasRef.current) {
+      const ctx = canvasRef.current.getContext("2d");
+      if (ctx) {
+        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      }
     }
 
     setCameraState("idle");
+    console.log("✅ CameraDemo: Camera stopped successfully");
   };
 
   const startVisionProcessing = useCallback(() => {
-    if (!videoRef.current || !canvasRef.current) return;
+    console.log("🔄 CameraDemo: Starting vision processing...");
+    
+    if (!videoRef.current || !canvasRef.current) {
+      console.error("❌ CameraDemo: Video or canvas ref not available");
+      return;
+    }
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
 
-    if (!ctx) return;
+    if (!ctx) {
+      console.error("❌ CameraDemo: Canvas context not available");
+      return;
+    }
+
+    // Set processing flag
+    processingRef.current = true;
 
     const processFrame = () => {
-      if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        // Set canvas dimensions to match video
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-
-        // Apply vision correction filter
-        ctx.filter =
-          cameraBlur > 0.05
-            ? `blur(${cameraBlur.toFixed(2)}px) contrast(1.1) brightness(1.05)`
-            : "contrast(1.1) brightness(1.05)";
-
-        // Draw video frame with vision correction
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        // Reset filter for UI elements
-        ctx.filter = "none";
-
-        // Add vision correction indicator
-        if (cameraBlur <= 0.1) {
-          ctx.fillStyle = "rgba(34, 197, 94, 0.8)";
-          ctx.fillRect(20, 20, 200, 40);
-          ctx.fillStyle = "white";
-          ctx.font = "16px sans-serif";
-          ctx.fillText("✓ Clear Vision", 30, 45);
-        } else {
-          ctx.fillStyle = "rgba(239, 68, 68, 0.8)";
-          ctx.fillRect(20, 20, 250, 40);
-          ctx.fillStyle = "white";
-          ctx.font = "16px sans-serif";
-          ctx.fillText(`Blur: ${cameraBlur.toFixed(2)}px`, 30, 45);
-        }
+      // Check if we should continue processing
+      if (!processingRef.current || !isProcessing) {
+        console.log("⏹️ CameraDemo: Processing stopped");
+        return;
       }
 
-      if (cameraState === "active") {
+      try {
+        if (video.readyState >= video.HAVE_CURRENT_DATA && video.videoWidth > 0 && video.videoHeight > 0) {
+          // Set canvas dimensions to match video (only if different)
+          if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            console.log(`📐 CameraDemo: Canvas resized to ${canvas.width}x${canvas.height}`);
+          }
+
+          // Clear canvas
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          // Apply vision correction filter
+          if (cameraBlur > 0) {
+            ctx.filter = `blur(${cameraBlur.toFixed(2)}px) contrast(1.15)`;
+          } else {
+            ctx.filter = "contrast(1.15)";
+          }
+
+          // Draw video frame with vision correction
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+          // Reset filter for UI elements
+          ctx.filter = "none";
+
+          // Add vision correction indicator
+          const indicatorHeight = 50;
+          const indicatorWidth = 250;
+          const margin = 20;
+
+          if (cameraBlur <= 0.1) {
+            // Clear vision indicator
+            ctx.fillStyle = "rgba(34, 197, 94, 0.9)";
+            ctx.fillRect(margin, margin, indicatorWidth, indicatorHeight);
+            ctx.fillStyle = "white";
+            ctx.font = "bold 16px Arial";
+            ctx.textAlign = "left";
+            ctx.fillText("✓ Clear Vision", margin + 10, margin + 30);
+          } else {
+            // Blur indicator
+            ctx.fillStyle = "rgba(239, 68, 68, 0.9)";
+            ctx.fillRect(margin, margin, indicatorWidth, indicatorHeight);
+            ctx.fillStyle = "white";
+            ctx.font = "bold 16px Arial";
+            ctx.textAlign = "left";
+            ctx.fillText(`Vision Blur: ${cameraBlur.toFixed(2)}px`, margin + 10, margin + 30);
+          }
+
+          // Add settings info
+          ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+          ctx.fillRect(margin, canvas.height - 60, 300, 40);
+          ctx.fillStyle = "white";
+          ctx.font = "12px Arial";
+          ctx.textAlign = "left";
+          ctx.fillText(
+            `Reading: +${readingVisionDiopter.toFixed(2)}D | Calibration: +${calibrationValue.toFixed(2)}D`,
+            margin + 10,
+            canvas.height - 35
+          );
+        }
+      } catch (error) {
+        console.error("❌ CameraDemo: Frame processing error:", error);
+      }
+
+      // Schedule next frame
+      if (processingRef.current && isProcessing) {
         animationFrameRef.current = requestAnimationFrame(processFrame);
       }
     };
 
+    // Start processing
     processFrame();
-  }, [cameraBlur, cameraState]);
+  }, [cameraBlur, readingVisionDiopter, calibrationValue, isProcessing]);
 
   // Update vision processing when blur changes
   useEffect(() => {
-    if (cameraState === "active") {
+    if (cameraState === "active" && isProcessing) {
+      console.log(`🔄 CameraDemo: Vision settings updated - blur: ${cameraBlur.toFixed(2)}px`);
       startVisionProcessing();
     }
-  }, [cameraBlur, cameraState, startVisionProcessing]);
+  }, [cameraBlur, cameraState, isProcessing, startVisionProcessing]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      console.log("🧹 CameraDemo: Component unmounting, cleaning up...");
       stopCamera();
     };
   }, []);
@@ -339,6 +458,9 @@ const CameraDemo: React.FC<CameraDemoProps> = ({
                     ? "Clear"
                     : `${cameraBlur.toFixed(2)}px blur`}
                 </p>
+                <p className="text-sm">
+                  Processing: {isProcessing ? "Active" : "Inactive"}
+                </p>
               </div>
             </div>
           </div>
@@ -364,13 +486,20 @@ const CameraDemo: React.FC<CameraDemoProps> = ({
         <div className="relative bg-gray-900 rounded-lg overflow-hidden">
           {cameraState === "active" ? (
             <>
-              {/* Hidden video element */}
-              <video ref={videoRef} className="hidden" playsInline muted />
+              {/* Hidden video element for processing */}
+              <video 
+                ref={videoRef} 
+                className="hidden" 
+                playsInline 
+                muted 
+                autoPlay
+              />
 
               {/* Processed canvas output */}
               <canvas
                 ref={canvasRef}
-                className="w-full h-auto max-h-96 object-cover"
+                className="w-full h-auto max-h-96 object-cover bg-black"
+                style={{ display: "block" }}
               />
             </>
           ) : (
@@ -385,6 +514,26 @@ const CameraDemo: React.FC<CameraDemoProps> = ({
             </div>
           )}
         </div>
+
+        {/* Debug Info (only in development) */}
+        {process.env.NODE_ENV === 'development' && cameraState === "active" && (
+          <div className="mt-4 p-3 bg-gray-50 border rounded-lg">
+            <h4 className="font-medium text-gray-900 mb-2">Debug Info</h4>
+            <div className="text-sm text-gray-700 space-y-1">
+              <p>Camera State: {cameraState}</p>
+              <p>Processing: {isProcessing ? "Yes" : "No"}</p>
+              <p>Stream Active: {streamRef.current ? "Yes" : "No"}</p>
+              <p>Video Element: {videoRef.current ? "Ready" : "Not Ready"}</p>
+              <p>Canvas Element: {canvasRef.current ? "Ready" : "Not Ready"}</p>
+              <p>
+                Video Dimensions: {videoRef.current?.videoWidth || 0} x {videoRef.current?.videoHeight || 0}
+              </p>
+              <p>
+                Canvas Dimensions: {canvasRef.current?.width || 0} x {canvasRef.current?.height || 0}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Usage Instructions */}
         {cameraState === "active" && (
