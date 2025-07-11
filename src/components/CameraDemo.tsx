@@ -37,220 +37,6 @@ const CameraDemo: React.FC<CameraDemoProps> = ({
     calibrationValue,
   );
 
-  const requestCameraAccess = async () => {
-    console.log("🎥 CameraDemo: Requesting camera access...");
-    setCameraState("requesting");
-    setCameraError("");
-
-    try {
-      // Check if mediaDevices is available
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error(
-          "Camera access not supported in this browser. Please use a modern browser like Chrome, Firefox, or Safari.",
-        );
-      }
-
-      // Check if we're on HTTPS (required for camera access in production)
-      if (location.protocol !== "https:" && location.hostname !== "localhost") {
-        throw new Error(
-          "Camera access requires HTTPS. Please ensure the site is loaded over a secure connection.",
-        );
-      }
-
-      const primaryConstraints: MediaStreamConstraints = {
-        video: {
-          width: { ideal: 1280, max: 1920 },
-          height: { ideal: 720, max: 1080 },
-          facingMode: "user",
-          frameRate: { ideal: 30 },
-        },
-        audio: false,
-      };
-
-      const fallbackConstraints: MediaStreamConstraints = {
-        video: { 
-          facingMode: "user",
-          width: { ideal: 640 },
-          height: { ideal: 480 },
-        },
-        audio: false,
-      };
-
-      // Add timeout to prevent hanging
-      const timeout = 10000; // 10 seconds
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(
-          () =>
-            reject(
-              new Error(
-                "Camera access timeout. Please check camera permissions and try again.",
-              ),
-            ),
-          timeout,
-        ),
-      );
-
-      let stream: MediaStream;
-
-      try {
-        console.log("🎥 CameraDemo: Trying primary constraints...");
-        // Try primary constraints with timeout
-        stream = await Promise.race([
-          navigator.mediaDevices.getUserMedia(primaryConstraints),
-          timeoutPromise,
-        ]);
-        console.log("✅ CameraDemo: Primary constraints successful");
-      } catch (error) {
-        console.warn("⚠️ CameraDemo: Primary constraints failed, trying fallback...");
-        // Handle specific errors and try fallback
-        if (
-          error instanceof DOMException &&
-          error.name === "OverconstrainedError"
-        ) {
-          stream = await Promise.race([
-            navigator.mediaDevices.getUserMedia(fallbackConstraints),
-            timeoutPromise,
-          ]);
-          console.log("✅ CameraDemo: Fallback constraints successful");
-        } else {
-          throw error;
-        }
-      }
-
-      // Store the stream reference
-      streamRef.current = stream;
-      console.log("📹 CameraDemo: Stream acquired, setting up video element...");
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        
-        // Set video properties for better compatibility
-        videoRef.current.autoplay = true;
-        videoRef.current.playsInline = true;
-        videoRef.current.muted = true;
-
-        // Wait for video to be ready
-        const videoReady = new Promise<void>((resolve, reject) => {
-          const video = videoRef.current;
-          if (!video) {
-            reject(new Error("Video element not found"));
-            return;
-          }
-
-          const onLoadedData = () => {
-            console.log("📹 CameraDemo: Video loaded, starting playback...");
-            video.removeEventListener("loadeddata", onLoadedData);
-            video.removeEventListener("error", onError);
-            resolve();
-          };
-
-          const onError = (e: Event) => {
-            console.error("❌ CameraDemo: Video error:", e);
-            video.removeEventListener("loadeddata", onLoadedData);
-            video.removeEventListener("error", onError);
-            reject(new Error("Video loading failed"));
-          };
-
-          video.addEventListener("loadeddata", onLoadedData);
-          video.addEventListener("error", onError);
-
-          // Fallback timeout
-          setTimeout(() => {
-            video.removeEventListener("loadeddata", onLoadedData);
-            video.removeEventListener("error", onError);
-            reject(new Error("Video loading timeout"));
-          }, 5000);
-        });
-
-        // Wait for video to be ready, then start processing
-        await videoReady;
-        
-        await videoRef.current.play();
-        console.log("✅ CameraDemo: Video playing, setting up canvas processing...");
-        
-        setCameraState("active");
-        setIsProcessing(true);
-        startVisionProcessing();
-      }
-    } catch (error) {
-      console.error("❌ CameraDemo: Camera access error:", error);
-
-      // Provide helpful error messages
-      let errorMessage = "Camera access failed";
-      if (error instanceof DOMException) {
-        switch (error.name) {
-          case "NotAllowedError":
-            errorMessage =
-              "Camera permission denied. Click the camera icon in your browser's address bar to allow access.";
-            break;
-          case "NotFoundError":
-            errorMessage =
-              "No camera found. Please connect a camera and refresh the page.";
-            break;
-          case "NotReadableError":
-            errorMessage =
-              "Camera is busy. Please close other applications using the camera and try again.";
-            break;
-          case "SecurityError":
-            errorMessage =
-              "Camera access blocked by security settings. Please use HTTPS or localhost.";
-            break;
-          default:
-            errorMessage = `Camera error: ${error.message}`;
-        }
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      
-      console.error('❌ CameraDemo: Full error details:', {
-        error,
-        name: error instanceof DOMException ? error.name : 'Unknown',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined
-      });
-
-      setCameraError(errorMessage);
-      setCameraState("error");
-    }
-  };
-
-  const stopCamera = () => {
-    console.log("🛑 CameraDemo: Stopping camera...");
-    
-    // Stop the processing loop
-    setIsProcessing(false);
-    processingRef.current = false;
-
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => {
-        track.stop();
-        console.log("🛑 CameraDemo: Stopped track:", track.kind);
-      });
-      streamRef.current = null;
-    }
-
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = undefined;
-    }
-
-    // Clear video element
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
-    }
-
-    // Clear canvas
-    if (canvasRef.current) {
-      const ctx = canvasRef.current.getContext("2d");
-      if (ctx) {
-        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-      }
-    }
-
-    setCameraState("idle");
-    console.log("✅ CameraDemo: Camera stopped successfully");
-  };
-
   const startVisionProcessing = useCallback(() => {
     console.log("🔄 CameraDemo: Starting vision processing...");
     
@@ -352,13 +138,225 @@ const CameraDemo: React.FC<CameraDemoProps> = ({
     processFrame();
   }, [cameraBlur, readingVisionDiopter, calibrationValue, isProcessing]);
 
+  const requestCameraAccess = async () => {
+    console.log("🎥 CameraDemo: Requesting camera access...");
+    setCameraState("requesting");
+    setCameraError("");
+
+    try {
+      // Check if mediaDevices is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error(
+          "Camera access not supported in this browser. Please use a modern browser like Chrome, Firefox, or Safari.",
+        );
+      }
+
+      // Check if we're on HTTPS (required for camera access in production)
+      if (location.protocol !== "https:" && location.hostname !== "localhost") {
+        throw new Error(
+          "Camera access requires HTTPS. Please ensure the site is loaded over a secure connection.",
+        );
+      }
+
+      const primaryConstraints: MediaStreamConstraints = {
+        video: {
+          width: { ideal: 1280, max: 1920 },
+          height: { ideal: 720, max: 1080 },
+          facingMode: "user",
+          frameRate: { ideal: 30 },
+        },
+        audio: false,
+      };
+
+      const fallbackConstraints: MediaStreamConstraints = {
+        video: { 
+          facingMode: "user",
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+        },
+        audio: false,
+      };
+
+      // Add timeout to prevent hanging
+      const timeout = 10000; // 10 seconds
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(
+          () =>
+            reject(
+              new Error(
+                "Camera access timeout. Please check camera permissions and try again.",
+              ),
+            ),
+          timeout,
+        ),
+      );
+
+      let stream: MediaStream;
+
+      try {
+        console.log("🎥 CameraDemo: Trying primary constraints...");
+        // Try primary constraints with timeout
+        stream = await Promise.race([
+          navigator.mediaDevices.getUserMedia(primaryConstraints),
+          timeoutPromise,
+        ]);
+        console.log("✅ CameraDemo: Primary constraints successful");
+      } catch (error) {
+        console.warn("⚠️ CameraDemo: Primary constraints failed, trying fallback...");
+        // Handle specific errors and try fallback
+        if (
+          error instanceof DOMException &&
+          error.name === "OverconstrainedError"
+        ) {
+          stream = await Promise.race([
+            navigator.mediaDevices.getUserMedia(fallbackConstraints),
+            timeoutPromise,
+          ]);
+          console.log("✅ CameraDemo: Fallback constraints successful");
+        } else {
+          throw error;
+        }
+      }
+
+      // Store the stream reference
+      streamRef.current = stream;
+      console.log("📹 CameraDemo: Stream acquired, setting up video element...");
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        
+        // Set video properties for better compatibility
+        videoRef.current.autoplay = true;
+        videoRef.current.playsInline = true;
+        videoRef.current.muted = true;
+
+        // Use simpler approach - wait for video to be playing
+        console.log("📹 CameraDemo: Waiting for video to start playing...");
+        
+        // Try to play the video
+        try {
+          await videoRef.current.play();
+          console.log("✅ CameraDemo: Video is playing");
+          
+          // Give video a moment to stabilize
+          setTimeout(() => {
+            if (videoRef.current && videoRef.current.readyState >= videoRef.current.HAVE_CURRENT_DATA) {
+              console.log("✅ CameraDemo: Video ready, transitioning to active state");
+              setCameraState("active");
+              setIsProcessing(true);
+              // Start processing will be triggered by useEffect
+            } else {
+              console.error("❌ CameraDemo: Video not ready after play");
+              throw new Error("Video failed to initialize properly");
+            }
+          }, 100);
+          
+        } catch (playError) {
+          console.error("❌ CameraDemo: Failed to play video:", playError);
+          throw new Error("Failed to start video playback");
+        }
+      } else {
+        throw new Error("Video element not found");
+      }
+    } catch (error) {
+      console.error("❌ CameraDemo: Camera access error:", error);
+
+      // Provide helpful error messages
+      let errorMessage = "Camera access failed";
+      if (error instanceof DOMException) {
+        switch (error.name) {
+          case "NotAllowedError":
+            errorMessage =
+              "Camera permission denied. Click the camera icon in your browser's address bar to allow access.";
+            setCameraState("denied");
+            break;
+          case "NotFoundError":
+            errorMessage =
+              "No camera found. Please connect a camera and refresh the page.";
+            setCameraState("error");
+            break;
+          case "NotReadableError":
+            errorMessage =
+              "Camera is busy. Please close other applications using the camera and try again.";
+            setCameraState("error");
+            break;
+          case "SecurityError":
+            errorMessage =
+              "Camera access blocked by security settings. Please use HTTPS or localhost.";
+            setCameraState("error");
+            break;
+          default:
+            errorMessage = `Camera error: ${error.message}`;
+            setCameraState("error");
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+        setCameraState("error");
+      }
+      
+      console.error('❌ CameraDemo: Full error details:', {
+        error,
+        name: error instanceof DOMException ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      });
+
+      setCameraError(errorMessage);
+    }
+  };
+
+  const stopCamera = () => {
+    console.log("🛑 CameraDemo: Stopping camera...");
+    
+    // Stop the processing loop
+    setIsProcessing(false);
+    processingRef.current = false;
+
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => {
+        track.stop();
+        console.log("🛑 CameraDemo: Stopped track:", track.kind);
+      });
+      streamRef.current = null;
+    }
+
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = undefined;
+    }
+
+    // Clear video element
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+
+    // Clear canvas
+    if (canvasRef.current) {
+      const ctx = canvasRef.current.getContext("2d");
+      if (ctx) {
+        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      }
+    }
+
+    setCameraState("idle");
+    console.log("✅ CameraDemo: Camera stopped successfully");
+  };
+
+  // Update vision processing when camera becomes active
+  useEffect(() => {
+    if (cameraState === "active" && isProcessing) {
+      console.log(`🔄 CameraDemo: Camera active, starting vision processing...`);
+      startVisionProcessing();
+    }
+  }, [cameraState, isProcessing, startVisionProcessing]);
+
   // Update vision processing when blur changes
   useEffect(() => {
     if (cameraState === "active" && isProcessing) {
       console.log(`🔄 CameraDemo: Vision settings updated - blur: ${cameraBlur.toFixed(2)}px`);
-      startVisionProcessing();
+      // No need to restart processing, it will pick up the new blur value
     }
-  }, [cameraBlur, cameraState, isProcessing, startVisionProcessing]);
+  }, [cameraBlur, cameraState, isProcessing]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -484,7 +482,7 @@ const CameraDemo: React.FC<CameraDemoProps> = ({
 
         {/* Camera Feed */}
         <div className="relative bg-gray-900 rounded-lg overflow-hidden">
-          {cameraState === "active" ? (
+          {cameraState === "active" || cameraState === "requesting" ? (
             <>
               {/* Hidden video element for processing */}
               <video 
@@ -499,7 +497,7 @@ const CameraDemo: React.FC<CameraDemoProps> = ({
               <canvas
                 ref={canvasRef}
                 className="w-full h-auto max-h-96 object-cover bg-black"
-                style={{ display: "block" }}
+                style={{ display: "block", minHeight: "240px" }}
               />
             </>
           ) : (
@@ -516,7 +514,7 @@ const CameraDemo: React.FC<CameraDemoProps> = ({
         </div>
 
         {/* Debug Info (only in development) */}
-        {process.env.NODE_ENV === 'development' && cameraState === "active" && (
+        {process.env.NODE_ENV === 'development' && (cameraState === "active" || cameraState === "requesting") && (
           <div className="mt-4 p-3 bg-gray-50 border rounded-lg">
             <h4 className="font-medium text-gray-900 mb-2">Debug Info</h4>
             <div className="text-sm text-gray-700 space-y-1">
@@ -527,6 +525,9 @@ const CameraDemo: React.FC<CameraDemoProps> = ({
               <p>Canvas Element: {canvasRef.current ? "Ready" : "Not Ready"}</p>
               <p>
                 Video Dimensions: {videoRef.current?.videoWidth || 0} x {videoRef.current?.videoHeight || 0}
+              </p>
+              <p>
+                Video Ready State: {videoRef.current?.readyState || 0} (need ≥ 2)
               </p>
               <p>
                 Canvas Dimensions: {canvasRef.current?.width || 0} x {canvasRef.current?.height || 0}
