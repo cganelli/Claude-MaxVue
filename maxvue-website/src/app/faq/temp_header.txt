@@ -1,0 +1,36 @@
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import NextImage from "next/image";
+import Link from "next/link";
+
+export default function FAQPage() {
+  return (
+    <div className="min-h-screen bg-[#eaf1fd]">
+      {/* Header */}
+      <header className="relative z-50 bg-white/80 backdrop-blur-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-3">
+            {/* Logo */}
+            <Link href="/" className="flex items-center space-x-2">
+              <NextImage
+                src="/maxvue_logo_transparent_bg.png"
+                alt="MaxVue Logo"
+                width={270}
+                height={90}
+                className="h-24 w-auto"
+              />
+            </Link>
+
+            {/* Navigation */}
+            <nav className="flex items-center space-x-8">
+              <Link href="/faq" className="text-[#3399FF] font-semibold">
+                FAQs
+              </Link>
+              <Link
+                href="#"
+                className="bg-[#3399FF] text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium"
+              >
+                Get Started
+              </Link>
+            </nav>
+          </div>
+        </div>
