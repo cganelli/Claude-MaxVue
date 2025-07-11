@@ -465,10 +465,22 @@ const ContentDemo: React.FC = () => {
             {activeTab === "email" && <EmailDemo />}
             {activeTab === "web" && <WebDemo />}
             {activeTab === "camera" && (
-              <WorkingCameraDemo
-                readingVisionDiopter={visionHook.settings?.readingVision || 0}
-                calibrationValue={calibrationValue}
-              />
+              (() => {
+                const readingVision = visionHook.settings?.readingVision || 0;
+                const calibration = calibrationValue;
+                console.log("🎯 ContentDemo: Rendering camera with props:", {
+                  readingVisionDiopter: readingVision,
+                  calibrationValue: calibration,
+                  visionSettings: visionHook.settings,
+                  willBlur: Math.abs(readingVision - calibration) > 0.1
+                });
+                return (
+                  <WorkingCameraDemo
+                    readingVisionDiopter={readingVision}
+                    calibrationValue={calibration}
+                  />
+                );
+              })()
             )}
             {activeTab === "native" && <NativeAppDemo />}
           </div>
