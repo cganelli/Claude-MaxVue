@@ -330,12 +330,11 @@ const ContentDemo: React.FC = () => {
       
       console.log(`✅ ContentDemo: Loaded calibration: +${calibrationVal.toFixed(2)}D`);
       
-      // If we have a calibration value, update the vision hook settings
-      if (calibrationVal > 0) {
-        console.log(`🎯 ContentDemo: Applying calibration +${calibrationVal.toFixed(2)}D to vision settings`);
+      // Enable vision correction if it was previously enabled
+      if (visionEnabled === "true") {
+        console.log(`🎯 ContentDemo: Enabling vision correction (not overriding readingVision)`);
         visionHook.updateSettings({ 
-          readingVision: calibrationVal,
-          isEnabled: visionEnabled === "true" 
+          isEnabled: true 
         });
       }
       
@@ -468,11 +467,12 @@ const ContentDemo: React.FC = () => {
               (() => {
                 const readingVision = visionHook.settings?.readingVision || 0;
                 const calibration = calibrationValue;
-                console.log("🎯 ContentDemo: Rendering camera with props:", {
+                const blurAmount = Math.abs(readingVision - calibration) * 0.5;
+                console.log("🎯 ContentDemo: Rendering camera with DYNAMIC props:", {
                   readingVisionDiopter: readingVision,
                   calibrationValue: calibration,
-                  visionSettings: visionHook.settings,
-                  willBlur: Math.abs(readingVision - calibration) > 0.1
+                  expectedBlur: blurAmount.toFixed(2) + "px",
+                  willBlur: blurAmount > 0.1
                 });
                 return (
                   <WorkingCameraDemo
