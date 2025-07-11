@@ -295,7 +295,7 @@ const ContentDemo: React.FC = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [calibrationValue, setCalibrationValue] = useState(0);
   const [calibrationLoaded, setCalibrationLoaded] = useState(false);
-
+  
   // CRITICAL FIX: Add loading ref to prevent multiple simultaneous loads
   const loadingRef = useRef(false);
 
@@ -308,46 +308,40 @@ const ContentDemo: React.FC = () => {
     if (loadingRef.current || calibrationLoaded) {
       return;
     }
-
+    
     loadingRef.current = true;
     console.log("🔍 ContentDemo: Loading calibration data (once)...");
-
+    
     try {
       // Check all possible calibration keys
       const savedCalibration = localStorage.getItem("calibrationValue");
       const estimatedSphere = localStorage.getItem("estimatedSphere");
       const visionEnabled = localStorage.getItem("visionCorrectionEnabled");
-
+      
       console.log("📊 ContentDemo: LocalStorage debug:", {
         calibrationValue: savedCalibration,
         estimatedSphere: estimatedSphere,
         visionCorrectionEnabled: visionEnabled,
-        allKeys: Object.keys(localStorage).filter(
-          (k) => k.includes("calibr") || k.includes("vision"),
-        ),
+        allKeys: Object.keys(localStorage).filter(k => k.includes('calibr') || k.includes('vision')),
       });
-
+      
       const calibrationVal = parseFloat(savedCalibration || "0");
       setCalibrationValue(calibrationVal);
-
-      console.log(
-        `✅ ContentDemo: Loaded calibration: +${calibrationVal.toFixed(2)}D`,
-      );
-
+      
+      console.log(`✅ ContentDemo: Loaded calibration: +${calibrationVal.toFixed(2)}D`);
+      
       // Enable vision correction if it was previously enabled
       if (visionEnabled === "true") {
-        console.log(
-          `🎯 ContentDemo: Enabling vision correction (not overriding readingVision)`,
-        );
-        visionHook.updateSettings({
-          isEnabled: true,
+        console.log(`🎯 ContentDemo: Enabling vision correction (not overriding readingVision)`);
+        visionHook.updateSettings({ 
+          isEnabled: true 
         });
       }
-
+      
       // CRITICAL FIX: Mark calibration as loaded to prevent re-runs
       setCalibrationLoaded(true);
     } catch (error) {
-      console.error("❌ ContentDemo: Error loading calibration:", error);
+      console.error('❌ ContentDemo: Error loading calibration:', error);
     } finally {
       loadingRef.current = false;
     }
@@ -469,27 +463,25 @@ const ContentDemo: React.FC = () => {
             {activeTab === "images" && <SampleImageLocal />}
             {activeTab === "email" && <EmailDemo />}
             {activeTab === "web" && <WebDemo />}
-            {activeTab === "camera" &&
+            {activeTab === "camera" && (
               (() => {
                 const readingVision = visionHook.settings?.readingVision || 0;
                 const calibration = calibrationValue;
                 const blurAmount = Math.abs(readingVision - calibration) * 0.5;
-                console.log(
-                  "🎯 ContentDemo: Rendering camera with DYNAMIC props:",
-                  {
-                    readingVisionDiopter: readingVision,
-                    calibrationValue: calibration,
-                    expectedBlur: blurAmount.toFixed(2) + "px",
-                    willBlur: blurAmount > 0.1,
-                  },
-                );
+                console.log("🎯 ContentDemo: Rendering camera with DYNAMIC props:", {
+                  readingVisionDiopter: readingVision,
+                  calibrationValue: calibration,
+                  expectedBlur: blurAmount.toFixed(2) + "px",
+                  willBlur: blurAmount > 0.1
+                });
                 return (
                   <WorkingCameraDemo
                     readingVisionDiopter={readingVision}
                     calibrationValue={calibration}
                   />
                 );
-              })()}
+              })()
+            )}
             {activeTab === "native" && <NativeAppDemo />}
           </div>
 
