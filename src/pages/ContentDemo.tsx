@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { VisionProcessor } from "../components/VisionProcessor";
 import { useVisionCorrection } from "../hooks/useVisionCorrection";
-import CameraDemo from "../components/CameraDemo";
+import WorkingCameraDemo from "../components/WorkingCameraDemo";
 import NativeAppDemo from "../components/NativeAppDemo";
 // Removed unused imports - using local components instead
 
@@ -465,7 +465,7 @@ const ContentDemo: React.FC = () => {
             {activeTab === "email" && <EmailDemo />}
             {activeTab === "web" && <WebDemo />}
             {activeTab === "camera" && (
-              <CameraDemo
+              <WorkingCameraDemo
                 readingVisionDiopter={visionHook.settings?.readingVision || 0}
                 calibrationValue={calibrationValue}
               />
