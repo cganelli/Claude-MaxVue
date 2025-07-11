@@ -10,6 +10,8 @@ const WorkingCameraDemo: React.FC<WorkingCameraDemoProps> = ({
   calibrationValue,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  console.log(`🎯 WorkingCameraDemo: Component render with props - Reading: ${readingVisionDiopter}D, Calibration: ${calibrationValue}D`);
 
   useEffect(() => {
     console.log("🎥 WorkingCameraDemo: Component mounted with props:", { readingVisionDiopter, calibrationValue });
@@ -377,12 +379,12 @@ const WorkingCameraDemo: React.FC<WorkingCameraDemoProps> = ({
         containerRef.current.innerHTML = "";
       }
     };
-  }, [readingVisionDiopter, calibrationValue]);
+  }, []); // Only run once on mount to create camera interface
 
   // CRITICAL: useEffect to update blur when props change (slider movement)
   useEffect(() => {
     const newBlurAmount = Math.abs(readingVisionDiopter - calibrationValue) * 0.5;
-    console.log(`🔄 WorkingCameraDemo: Props changed! New blur: ${newBlurAmount.toFixed(2)}px`);
+    console.log(`🔄 WorkingCameraDemo: Props changed! Reading: ${readingVisionDiopter}D, Calibration: ${calibrationValue}D, New blur: ${newBlurAmount.toFixed(2)}px`);
     
     // Apply new blur to existing camera elements if they exist
     if (containerRef.current) {
@@ -394,7 +396,13 @@ const WorkingCameraDemo: React.FC<WorkingCameraDemoProps> = ({
         video.style.filter = filterValue;
         canvas.style.filter = filterValue;
         console.log(`✅ WorkingCameraDemo: Updated filters to: ${filterValue}`);
+        console.log(`📹 WorkingCameraDemo: Video filter applied: ${video.style.filter}`);
+        console.log(`🎨 WorkingCameraDemo: Canvas filter applied: ${canvas.style.filter}`);
+      } else {
+        console.log(`❌ WorkingCameraDemo: Camera elements not found - video: ${!!video}, canvas: ${!!canvas}`);
       }
+    } else {
+      console.log(`❌ WorkingCameraDemo: Container not found`);
     }
   }, [readingVisionDiopter, calibrationValue]);
 
