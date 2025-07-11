@@ -19,9 +19,9 @@ const WorkingCameraDemo: React.FC<WorkingCameraDemoProps> = ({
     // Clear any existing content
     containerRef.current.innerHTML = "";
 
-    // Calculate blur amount
-    const blurAmount = Math.abs(readingVisionDiopter - calibrationValue) * 0.3;
-    console.log(`📊 WorkingCameraDemo: Calculated blur: ${blurAmount.toFixed(2)}px`);
+    // Calculate blur amount - increased multiplier for more visible effect
+    const blurAmount = Math.abs(readingVisionDiopter - calibrationValue) * 0.5;
+    console.log(`📊 WorkingCameraDemo: Calculated blur: ${blurAmount.toFixed(2)}px (readingVision: ${readingVisionDiopter}, calibration: ${calibrationValue})`);
 
     // Create the camera interface with vanilla JavaScript
     const createCameraInterface = () => {
@@ -274,6 +274,7 @@ const WorkingCameraDemo: React.FC<WorkingCameraDemoProps> = ({
       // Canvas processing
       const startCanvasProcessing = () => {
         console.log("🎨 WorkingCameraDemo: Starting canvas processing...");
+        console.log(`🔍 WorkingCameraDemo: Vision correction settings - Reading: ${readingVisionDiopter}D, Calibration: ${calibrationValue}D, Blur: ${blurAmount}px`);
         
         const ctx = canvas.getContext('2d');
         if (!ctx) {
@@ -292,19 +293,34 @@ const WorkingCameraDemo: React.FC<WorkingCameraDemoProps> = ({
               console.log(`📐 WorkingCameraDemo: Canvas resized to ${canvas.width}x${canvas.height}`);
             }
 
-            // Apply vision correction filter
-            ctx.filter = `blur(${blurAmount}px) contrast(1.15)`;
+            // Clear canvas first
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Draw video frame
+            // Apply vision correction filter directly to canvas CSS
+            const filterValue = `blur(${blurAmount}px) contrast(1.15) brightness(1.05)`;
+            canvas.style.filter = filterValue;
+            
+            // Draw video frame WITHOUT canvas context filter (use CSS filter instead)
+            ctx.filter = "none";
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             
-            // Draw overlay
-            ctx.filter = "none";
-            ctx.fillStyle = blurAmount > 0.1 ? "rgba(255, 0, 0, 0.8)" : "rgba(0, 255, 0, 0.8)";
-            ctx.fillRect(10, 10, 220, 40);
-            ctx.fillStyle = "white";
-            ctx.font = "16px Arial";
-            ctx.fillText(`Blur: ${blurAmount.toFixed(2)}px`, 20, 35);
+            // Draw overlay info showing current correction (overlay should NOT be blurred)
+            const overlayCanvas = document.createElement('canvas');
+            overlayCanvas.width = canvas.width;
+            overlayCanvas.height = canvas.height;
+            const overlayCtx = overlayCanvas.getContext('2d');
+            
+            if (overlayCtx) {
+              overlayCtx.fillStyle = blurAmount > 0.1 ? "rgba(255, 0, 0, 0.9)" : "rgba(0, 255, 0, 0.9)";
+              overlayCtx.fillRect(10, 10, 280, 50);
+              overlayCtx.fillStyle = "white";
+              overlayCtx.font = "14px Arial";
+              overlayCtx.fillText(`Vision Correction: ${blurAmount.toFixed(2)}px blur`, 20, 30);
+              overlayCtx.fillText(`Reading: ${readingVisionDiopter}D | Calibration: ${calibrationValue}D`, 20, 50);
+              
+              // Draw overlay on main canvas (this will be affected by CSS filter)
+              ctx.drawImage(overlayCanvas, 0, 0);
+            }
           }
 
           animationFrame = requestAnimationFrame(processFrame);
