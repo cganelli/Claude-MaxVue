@@ -198,7 +198,7 @@ const WorkingCameraDemo: React.FC<WorkingCameraDemoProps> = ({
           
           video.onloadedmetadata = () => {
             console.log("✅ WorkingCameraDemo: Video metadata loaded");
-            console.log(\`📐 WorkingCameraDemo: Video dimensions: \${video.videoWidth}x\${video.videoHeight}\`);
+            console.log(`📐 WorkingCameraDemo: Video dimensions: ${video.videoWidth}x${video.videoHeight}`);
             
             video.play().then(() => {
               console.log("✅ WorkingCameraDemo: Video playing!");
@@ -289,11 +289,11 @@ const WorkingCameraDemo: React.FC<WorkingCameraDemoProps> = ({
             if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
               canvas.width = video.videoWidth || 640;
               canvas.height = video.videoHeight || 480;
-              console.log(\`📐 WorkingCameraDemo: Canvas resized to \${canvas.width}x\${canvas.height}\`);
+              console.log(`📐 WorkingCameraDemo: Canvas resized to ${canvas.width}x${canvas.height}`);
             }
 
             // Apply vision correction filter
-            ctx.filter = \`blur(\${blurAmount}px) contrast(1.15)\`;
+            ctx.filter = `blur(${blurAmount}px) contrast(1.15)`;
             
             // Draw video frame
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -304,7 +304,7 @@ const WorkingCameraDemo: React.FC<WorkingCameraDemoProps> = ({
             ctx.fillRect(10, 10, 220, 40);
             ctx.fillStyle = "white";
             ctx.font = "16px Arial";
-            ctx.fillText(\`Blur: \${blurAmount.toFixed(2)}px\`, 20, 35);
+            ctx.fillText(`Blur: ${blurAmount.toFixed(2)}px`, 20, 35);
           }
 
           animationFrame = requestAnimationFrame(processFrame);
