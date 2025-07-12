@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import { useMobileDetection } from "../hooks/useMobileDetection";
 
 interface WorkingCameraDemoProps {
   readingVisionDiopter: number;
@@ -10,20 +11,43 @@ const WorkingCameraDemo: React.FC<WorkingCameraDemoProps> = ({
   calibrationValue,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  
-  console.log(`🎯 WorkingCameraDemo: Component render with props - Reading: ${readingVisionDiopter}D, Calibration: ${calibrationValue}D`);
+  const mobileDetection = useMobileDetection();
+
+  console.log(
+    `🎯 WorkingCameraDemo: Component render with props - Reading: ${readingVisionDiopter}D, Calibration: ${calibrationValue}D`,
+  );
+  console.log(
+    `📱 WorkingCameraDemo: Device: ${mobileDetection.deviceType}, Viewing distance: ${mobileDetection.viewingDistance}"`,
+  );
+
+  // Calculate mobile-adjusted blur amount
+  const baseBlurAmount =
+    Math.abs(readingVisionDiopter - calibrationValue) * 0.5;
+  // Additional mobile-specific blur adjustment for better mobile viewing
+  const mobileBlurMultiplier =
+    mobileDetection.deviceType === "mobile"
+      ? 1.2
+      : mobileDetection.deviceType === "tablet"
+        ? 1.1
+        : 1.0;
+  const adjustedBlurAmount = baseBlurAmount * mobileBlurMultiplier;
 
   useEffect(() => {
-    console.log("🎥 WorkingCameraDemo: Component mounted with props:", { readingVisionDiopter, calibrationValue });
-    
+    console.log("🎥 WorkingCameraDemo: Component mounted with props:", {
+      readingVisionDiopter,
+      calibrationValue,
+    });
+
     if (!containerRef.current) return;
 
     // Clear any existing content
     containerRef.current.innerHTML = "";
 
-    // Calculate blur amount - increased multiplier for more visible effect
-    const blurAmount = Math.abs(readingVisionDiopter - calibrationValue) * 0.5;
-    console.log(`📊 WorkingCameraDemo: Calculated blur: ${blurAmount.toFixed(2)}px (readingVision: ${readingVisionDiopter}, calibration: ${calibrationValue})`);
+    // Use the mobile-adjusted blur amount
+    const blurAmount = adjustedBlurAmount;
+    console.log(
+      `📊 WorkingCameraDemo: Calculated blur: ${blurAmount.toFixed(2)}px (base: ${baseBlurAmount.toFixed(2)}px, multiplier: ${mobileBlurMultiplier}x for ${mobileDetection.deviceType})`,
+    );
 
     // Global reference to apply vision correction function
     let applyVisionCorrectionRef: (() => void) | null = null;
@@ -31,7 +55,7 @@ const WorkingCameraDemo: React.FC<WorkingCameraDemoProps> = ({
     // Create the camera interface with vanilla JavaScript
     const createCameraInterface = () => {
       const container = containerRef.current!;
-      
+
       // Create HTML structure
       container.innerHTML = `
         <div class="mb-6">
@@ -40,8 +64,13 @@ const WorkingCameraDemo: React.FC<WorkingCameraDemoProps> = ({
           <div class="bg-white rounded-lg shadow-md border p-6">
             <div class="mb-4">
               <p class="text-gray-700 mb-2">
-                Test your vision correction with live camera feed. Blur amount: ${blurAmount.toFixed(2)}px
+                Test your vision correction with live camera feed.
               </p>
+              <div class="text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                Device: ${mobileDetection.deviceType} | Viewing Distance: ${mobileDetection.viewingDistance}" |
+                Base Blur: ${baseBlurAmount.toFixed(2)}px | Mobile Multiplier: ${mobileBlurMultiplier}x |
+                Final Blur: ${blurAmount.toFixed(2)}px
+              </div>
             </div>
 
             <!-- Camera Controls -->
@@ -94,8 +123,11 @@ const WorkingCameraDemo: React.FC<WorkingCameraDemoProps> = ({
               <h4 class="font-medium text-blue-900 mb-2">Vision Settings</h4>
               <div class="text-sm text-blue-800 space-y-1">
                 <p>Reading Vision: +${readingVisionDiopter.toFixed(2)}D</p>
-                <p>Calibration: +${calibrationValue.toFixed(2)}D</p>
-                <p>Blur Applied: ${blurAmount.toFixed(2)}px</p>
+                <p>Calibration: +${calibrationValue.toFixed(2)}D (mobile-adjusted)</p>
+                <p>Device Type: ${mobileDetection.deviceType}</p>
+                <p>Viewing Distance: ${mobileDetection.viewingDistance}"</p>
+                <p>Mobile Blur Multiplier: ${mobileBlurMultiplier}x</p>
+                <p>Final Blur Applied: ${blurAmount.toFixed(2)}px</p>
               </div>
             </div>
 
@@ -143,16 +175,36 @@ const WorkingCameraDemo: React.FC<WorkingCameraDemoProps> = ({
       let animationFrame: number | null = null;
 
       // Get elements
-      const startBtn = container.querySelector('#start-camera-btn') as HTMLButtonElement;
-      const stopBtn = container.querySelector('#stop-camera-btn') as HTMLButtonElement;
-      const loadingDiv = container.querySelector('#loading-indicator') as HTMLDivElement;
-      const errorDiv = container.querySelector('#error-message') as HTMLDivElement;
-      const errorText = container.querySelector('#error-text') as HTMLParagraphElement;
-      const successDiv = container.querySelector('#success-message') as HTMLDivElement;
-      const video = container.querySelector('#camera-video') as HTMLVideoElement;
-      const canvas = container.querySelector('#camera-canvas') as HTMLCanvasElement;
-      const placeholder = container.querySelector('#camera-placeholder') as HTMLDivElement;
-      const debugInfo = container.querySelector('#debug-info') as HTMLDivElement;
+      const startBtn = container.querySelector(
+        "#start-camera-btn",
+      ) as HTMLButtonElement;
+      const stopBtn = container.querySelector(
+        "#stop-camera-btn",
+      ) as HTMLButtonElement;
+      const loadingDiv = container.querySelector(
+        "#loading-indicator",
+      ) as HTMLDivElement;
+      const errorDiv = container.querySelector(
+        "#error-message",
+      ) as HTMLDivElement;
+      const errorText = container.querySelector(
+        "#error-text",
+      ) as HTMLParagraphElement;
+      const successDiv = container.querySelector(
+        "#success-message",
+      ) as HTMLDivElement;
+      const video = container.querySelector(
+        "#camera-video",
+      ) as HTMLVideoElement;
+      const canvas = container.querySelector(
+        "#camera-canvas",
+      ) as HTMLCanvasElement;
+      const placeholder = container.querySelector(
+        "#camera-placeholder",
+      ) as HTMLDivElement;
+      const debugInfo = container.querySelector(
+        "#debug-info",
+      ) as HTMLDivElement;
 
       // Update debug info
       const updateDebugInfo = (status: string) => {
@@ -160,23 +212,25 @@ const WorkingCameraDemo: React.FC<WorkingCameraDemoProps> = ({
           <p>Component: Loaded</p>
           <p>Click Handler: Active</p>
           <p>Camera: ${status}</p>
-          <p>Stream: ${stream ? 'Active' : 'None'}</p>
-          <p>Video Playing: ${video?.readyState === 4 ? 'Yes' : 'No'}</p>
-          <p>Canvas: ${canvas ? 'Ready' : 'Not Ready'}</p>
+          <p>Stream: ${stream ? "Active" : "None"}</p>
+          <p>Video Playing: ${video?.readyState === 4 ? "Yes" : "No"}</p>
+          <p>Canvas: ${canvas ? "Ready" : "Not Ready"}</p>
         `;
       };
 
       // Function to apply vision correction filters to camera elements
       const applyVisionCorrection = () => {
         const filterValue = `blur(${blurAmount}px) contrast(1.15) brightness(1.05)`;
-        console.log(`🎯 WorkingCameraDemo: Applying vision correction filter: ${filterValue}`);
-        
+        console.log(
+          `🎯 WorkingCameraDemo: Applying vision correction filter: ${filterValue}`,
+        );
+
         // Apply filter to video element
         if (video) {
           video.style.filter = filterValue;
           console.log("✅ WorkingCameraDemo: Filter applied to video element");
         }
-        
+
         // Apply filter to canvas element
         if (canvas) {
           canvas.style.filter = filterValue;
@@ -189,17 +243,19 @@ const WorkingCameraDemo: React.FC<WorkingCameraDemoProps> = ({
 
       // Start camera function
       const startCamera = async () => {
-        console.log("🚀 WorkingCameraDemo: startCamera() called - DIRECT EXECUTION!");
+        console.log(
+          "🚀 WorkingCameraDemo: startCamera() called - DIRECT EXECUTION!",
+        );
         updateDebugInfo("Starting...");
-        
+
         // Show loading
-        startBtn.classList.add('hidden');
-        loadingDiv.classList.remove('hidden');
-        errorDiv.classList.add('hidden');
+        startBtn.classList.add("hidden");
+        loadingDiv.classList.remove("hidden");
+        errorDiv.classList.add("hidden");
 
         try {
           console.log("🔍 WorkingCameraDemo: Checking getUserMedia support...");
-          
+
           if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             throw new Error("Camera not supported in this browser");
           }
@@ -211,48 +267,56 @@ const WorkingCameraDemo: React.FC<WorkingCameraDemoProps> = ({
             video: {
               width: { ideal: 1280 },
               height: { ideal: 720 },
-              facingMode: "user"
+              facingMode: "user",
             },
-            audio: false
+            audio: false,
           });
 
           console.log("✅ WorkingCameraDemo: Camera stream obtained!", stream);
-          console.log("📹 WorkingCameraDemo: Stream tracks:", stream.getTracks());
+          console.log(
+            "📹 WorkingCameraDemo: Stream tracks:",
+            stream.getTracks(),
+          );
 
           // Set up video
           video.srcObject = stream;
-          
+
           video.onloadedmetadata = () => {
             console.log("✅ WorkingCameraDemo: Video metadata loaded");
-            console.log(`📐 WorkingCameraDemo: Video dimensions: ${video.videoWidth}x${video.videoHeight}`);
-            
-            video.play().then(() => {
-              console.log("✅ WorkingCameraDemo: Video playing!");
-              
-              // CRITICAL: Apply vision correction filters to camera elements
-              applyVisionCorrection();
-              
-              // Update UI
-              isActive = true;
-              loadingDiv.classList.add('hidden');
-              stopBtn.classList.remove('hidden');
-              successDiv.classList.remove('hidden');
-              placeholder.classList.add('hidden');
-              canvas.classList.remove('hidden');
-              
-              updateDebugInfo("Active");
-              startCanvasProcessing();
-              
-            }).catch(err => {
-              console.error("❌ WorkingCameraDemo: Video play error:", err);
-              showError("Failed to play video");
-              updateDebugInfo("Play Error");
-            });
-          };
+            console.log(
+              `📐 WorkingCameraDemo: Video dimensions: ${video.videoWidth}x${video.videoHeight}`,
+            );
 
+            video
+              .play()
+              .then(() => {
+                console.log("✅ WorkingCameraDemo: Video playing!");
+
+                // CRITICAL: Apply vision correction filters to camera elements
+                applyVisionCorrection();
+
+                // Update UI
+                isActive = true;
+                loadingDiv.classList.add("hidden");
+                stopBtn.classList.remove("hidden");
+                successDiv.classList.remove("hidden");
+                placeholder.classList.add("hidden");
+                canvas.classList.remove("hidden");
+
+                updateDebugInfo("Active");
+                startCanvasProcessing();
+              })
+              .catch((err) => {
+                console.error("❌ WorkingCameraDemo: Video play error:", err);
+                showError("Failed to play video");
+                updateDebugInfo("Play Error");
+              });
+          };
         } catch (err) {
           console.error("❌ WorkingCameraDemo: Camera error:", err);
-          showError(err instanceof Error ? err.message : "Camera access failed");
+          showError(
+            err instanceof Error ? err.message : "Camera access failed",
+          );
           updateDebugInfo("Error");
         }
       };
@@ -260,9 +324,9 @@ const WorkingCameraDemo: React.FC<WorkingCameraDemoProps> = ({
       // Stop camera function
       const stopCamera = () => {
         console.log("🛑 WorkingCameraDemo: stopCamera() called!");
-        
+
         if (stream) {
-          stream.getTracks().forEach(track => {
+          stream.getTracks().forEach((track) => {
             track.stop();
             console.log("🛑 WorkingCameraDemo: Stopped track:", track.kind);
           });
@@ -275,19 +339,19 @@ const WorkingCameraDemo: React.FC<WorkingCameraDemoProps> = ({
         }
 
         video.srcObject = null;
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext("2d");
         if (ctx) {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
         // Update UI
         isActive = false;
-        stopBtn.classList.add('hidden');
-        startBtn.classList.remove('hidden');
-        successDiv.classList.add('hidden');
-        canvas.classList.add('hidden');
-        placeholder.classList.remove('hidden');
-        
+        stopBtn.classList.add("hidden");
+        startBtn.classList.remove("hidden");
+        successDiv.classList.add("hidden");
+        canvas.classList.add("hidden");
+        placeholder.classList.remove("hidden");
+
         updateDebugInfo("Stopped");
         console.log("✅ WorkingCameraDemo: Camera stopped");
       };
@@ -295,17 +359,19 @@ const WorkingCameraDemo: React.FC<WorkingCameraDemoProps> = ({
       // Show error function
       const showError = (message: string) => {
         errorText.textContent = message;
-        errorDiv.classList.remove('hidden');
-        loadingDiv.classList.add('hidden');
-        startBtn.classList.remove('hidden');
+        errorDiv.classList.remove("hidden");
+        loadingDiv.classList.add("hidden");
+        startBtn.classList.remove("hidden");
       };
 
       // Canvas processing
       const startCanvasProcessing = () => {
         console.log("🎨 WorkingCameraDemo: Starting canvas processing...");
-        console.log(`🔍 WorkingCameraDemo: Vision correction settings - Reading: ${readingVisionDiopter}D, Calibration: ${calibrationValue}D, Blur: ${blurAmount}px`);
-        
-        const ctx = canvas.getContext('2d');
+        console.log(
+          `🔍 WorkingCameraDemo: Vision correction settings - Reading: ${readingVisionDiopter}D, Calibration: ${calibrationValue}D, Blur: ${blurAmount}px`,
+        );
+
+        const ctx = canvas.getContext("2d");
         if (!ctx) {
           console.error("❌ WorkingCameraDemo: No canvas context");
           return;
@@ -316,33 +382,49 @@ const WorkingCameraDemo: React.FC<WorkingCameraDemoProps> = ({
 
           if (video.readyState >= video.HAVE_CURRENT_DATA) {
             // Resize canvas to match video
-            if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+            if (
+              canvas.width !== video.videoWidth ||
+              canvas.height !== video.videoHeight
+            ) {
               canvas.width = video.videoWidth || 640;
               canvas.height = video.videoHeight || 480;
-              console.log(`📐 WorkingCameraDemo: Canvas resized to ${canvas.width}x${canvas.height}`);
+              console.log(
+                `📐 WorkingCameraDemo: Canvas resized to ${canvas.width}x${canvas.height}`,
+              );
             }
 
             // Clear canvas first
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
+
             // Draw video frame (CSS filter is applied to entire canvas element)
             ctx.filter = "none";
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
+
             // Draw overlay info showing current correction (overlay should NOT be blurred)
-            const overlayCanvas = document.createElement('canvas');
+            const overlayCanvas = document.createElement("canvas");
             overlayCanvas.width = canvas.width;
             overlayCanvas.height = canvas.height;
-            const overlayCtx = overlayCanvas.getContext('2d');
-            
+            const overlayCtx = overlayCanvas.getContext("2d");
+
             if (overlayCtx) {
-              overlayCtx.fillStyle = blurAmount > 0.1 ? "rgba(255, 0, 0, 0.9)" : "rgba(0, 255, 0, 0.9)";
+              overlayCtx.fillStyle =
+                blurAmount > 0.1
+                  ? "rgba(255, 0, 0, 0.9)"
+                  : "rgba(0, 255, 0, 0.9)";
               overlayCtx.fillRect(10, 10, 280, 50);
               overlayCtx.fillStyle = "white";
               overlayCtx.font = "14px Arial";
-              overlayCtx.fillText(`Vision Correction: ${blurAmount.toFixed(2)}px blur`, 20, 30);
-              overlayCtx.fillText(`Reading: ${readingVisionDiopter}D | Calibration: ${calibrationValue}D`, 20, 50);
-              
+              overlayCtx.fillText(
+                `Vision Correction: ${blurAmount.toFixed(2)}px blur`,
+                20,
+                30,
+              );
+              overlayCtx.fillText(
+                `Reading: ${readingVisionDiopter}D | Calibration: ${calibrationValue}D`,
+                20,
+                50,
+              );
+
               // Draw overlay on main canvas (this will be affected by CSS filter)
               ctx.drawImage(overlayCanvas, 0, 0);
             }
@@ -355,17 +437,23 @@ const WorkingCameraDemo: React.FC<WorkingCameraDemoProps> = ({
       };
 
       // Attach event listeners with direct console logging
-      startBtn.addEventListener('click', () => {
-        console.log("🖱️ WorkingCameraDemo: START BUTTON CLICKED - DIRECT EVENT!");
+      startBtn.addEventListener("click", () => {
+        console.log(
+          "🖱️ WorkingCameraDemo: START BUTTON CLICKED - DIRECT EVENT!",
+        );
         startCamera();
       });
 
-      stopBtn.addEventListener('click', () => {
-        console.log("🖱️ WorkingCameraDemo: STOP BUTTON CLICKED - DIRECT EVENT!");
+      stopBtn.addEventListener("click", () => {
+        console.log(
+          "🖱️ WorkingCameraDemo: STOP BUTTON CLICKED - DIRECT EVENT!",
+        );
         stopCamera();
       });
 
-      console.log("✅ WorkingCameraDemo: Event listeners attached successfully");
+      console.log(
+        "✅ WorkingCameraDemo: Event listeners attached successfully",
+      );
       updateDebugInfo("Ready");
     };
 
@@ -383,28 +471,45 @@ const WorkingCameraDemo: React.FC<WorkingCameraDemoProps> = ({
 
   // CRITICAL: useEffect to update blur when props change (slider movement)
   useEffect(() => {
-    const newBlurAmount = Math.abs(readingVisionDiopter - calibrationValue) * 0.5;
-    console.log(`🔄 WorkingCameraDemo: Props changed! Reading: ${readingVisionDiopter}D, Calibration: ${calibrationValue}D, New blur: ${newBlurAmount.toFixed(2)}px`);
-    
+    const newBaseBlurAmount =
+      Math.abs(readingVisionDiopter - calibrationValue) * 0.5;
+    const newAdjustedBlurAmount = newBaseBlurAmount * mobileBlurMultiplier;
+    console.log(
+      `🔄 WorkingCameraDemo: Props changed! Reading: ${readingVisionDiopter}D, Calibration: ${calibrationValue}D`,
+    );
+    console.log(
+      `🔄 WorkingCameraDemo: New blur: ${newBaseBlurAmount.toFixed(2)}px (base) → ${newAdjustedBlurAmount.toFixed(2)}px (mobile-adjusted)`,
+    );
+
     // Apply new blur to existing camera elements if they exist
     if (containerRef.current) {
-      const video = containerRef.current.querySelector('#camera-video') as HTMLVideoElement;
-      const canvas = containerRef.current.querySelector('#camera-canvas') as HTMLCanvasElement;
-      
+      const video = containerRef.current.querySelector(
+        "#camera-video",
+      ) as HTMLVideoElement;
+      const canvas = containerRef.current.querySelector(
+        "#camera-canvas",
+      ) as HTMLCanvasElement;
+
       if (video && canvas) {
-        const filterValue = `blur(${newBlurAmount}px) contrast(1.15) brightness(1.05)`;
+        const filterValue = `blur(${newAdjustedBlurAmount}px) contrast(1.15) brightness(1.05)`;
         video.style.filter = filterValue;
         canvas.style.filter = filterValue;
         console.log(`✅ WorkingCameraDemo: Updated filters to: ${filterValue}`);
-        console.log(`📹 WorkingCameraDemo: Video filter applied: ${video.style.filter}`);
-        console.log(`🎨 WorkingCameraDemo: Canvas filter applied: ${canvas.style.filter}`);
+        console.log(
+          `📹 WorkingCameraDemo: Video filter applied: ${video.style.filter}`,
+        );
+        console.log(
+          `🎨 WorkingCameraDemo: Canvas filter applied: ${canvas.style.filter}`,
+        );
       } else {
-        console.log(`❌ WorkingCameraDemo: Camera elements not found - video: ${!!video}, canvas: ${!!canvas}`);
+        console.log(
+          `❌ WorkingCameraDemo: Camera elements not found - video: ${!!video}, canvas: ${!!canvas}`,
+        );
       }
     } else {
       console.log(`❌ WorkingCameraDemo: Container not found`);
     }
-  }, [readingVisionDiopter, calibrationValue]);
+  }, [readingVisionDiopter, calibrationValue, mobileBlurMultiplier]);
 
   return <div ref={containerRef} />;
 };

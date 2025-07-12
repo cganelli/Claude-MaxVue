@@ -4,6 +4,7 @@ import {
   VisionSettings,
   ProcessingOptions,
 } from "../utils/VisionCorrectionEngine";
+import { useMobileDetection } from "./useMobileDetection";
 
 export interface CalibrationData {
   readingVision: number; // 0.00D to +3.5D presbyopia correction
@@ -40,6 +41,12 @@ export interface UseVisionCorrectionReturn {
   // Calibration helpers
   runVisionTest: () => Promise<CalibrationData>;
   resetSettings: () => void;
+
+  // Mobile calibration
+  adjustedReadingVision: number;
+  baseReadingVision: number;
+  deviceType: "mobile" | "tablet" | "desktop";
+  calibrationAdjustment: number;
 }
 
 const DEFAULT_SETTINGS: VisionSettings = {
@@ -58,11 +65,19 @@ export const useVisionCorrection = (): UseVisionCorrectionReturn => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [calibrationData, setCalibrationData] =
     useState<CalibrationData | null>(null);
+  const [baseReadingVision, setBaseReadingVision] = useState(0);
 
   // Engine and processing
   const engineRef = useRef<VisionCorrectionEngine | null>(null);
   const processingIntervalRef = useRef<number | null>(null);
   const observerRef = useRef<MutationObserver | null>(null);
+
+  // Mobile detection
+  const mobileDetection = useMobileDetection();
+
+  // Calculate adjusted reading vision based on device type
+  const adjustedReadingVision =
+    baseReadingVision + mobileDetection.calibrationAdjustment;
 
   // Initialize engine when settings change
   useEffect(() => {
@@ -70,32 +85,43 @@ export const useVisionCorrection = (): UseVisionCorrectionReturn => {
       engineRef.current.dispose();
     }
 
+    // Apply mobile-adjusted settings
+    const adjustedSettings = {
+      ...settings,
+      readingVision: adjustedReadingVision,
+    };
+
     const processingOptions: ProcessingOptions = {
       preserveColors: true,
       adaptiveSharpening: true,
       realTimeProcessing: settings.isEnabled,
     };
 
-    engineRef.current = new VisionCorrectionEngine(settings, processingOptions);
-  }, [settings]);
+    engineRef.current = new VisionCorrectionEngine(
+      adjustedSettings,
+      processingOptions,
+    );
+  }, [settings, adjustedReadingVision]);
 
   // Load settings and calibration from localStorage on mount
   useEffect(() => {
     console.log("🔍 VisionHook: Loading settings and calibration...");
-    
+
     const savedSettings = localStorage.getItem(STORAGE_KEY);
     const savedCalibration = localStorage.getItem(CALIBRATION_KEY);
-    
+
     // CRITICAL FIX: Also check for legacy calibrationValue key from VisionCalibration page
     const legacyCalibrationValue = localStorage.getItem("calibrationValue");
     const visionEnabled = localStorage.getItem("visionCorrectionEnabled");
-    
+
     console.log("📊 VisionHook: Storage debug:", {
       savedSettings: savedSettings ? "Present" : "Missing",
-      savedCalibration: savedCalibration ? "Present" : "Missing", 
+      savedCalibration: savedCalibration ? "Present" : "Missing",
       legacyCalibrationValue: legacyCalibrationValue,
       visionEnabled: visionEnabled,
-      allVisionKeys: Object.keys(localStorage).filter(k => k.includes('vision') || k.includes('calibr')),
+      allVisionKeys: Object.keys(localStorage).filter(
+        (k) => k.includes("vision") || k.includes("calibr"),
+      ),
     });
 
     // Load settings
@@ -104,6 +130,7 @@ export const useVisionCorrection = (): UseVisionCorrectionReturn => {
         const parsed = JSON.parse(savedSettings);
         console.log("✅ VisionHook: Loaded settings:", parsed);
         setSettings({ ...DEFAULT_SETTINGS, ...parsed });
+        setBaseReadingVision(parsed.readingVision || 0.0);
       } catch (e) {
         console.warn("Failed to load vision settings:", e);
       }
@@ -117,9 +144,11 @@ export const useVisionCorrection = (): UseVisionCorrectionReturn => {
         setCalibrationData(parsed);
         // Apply calibration data to settings
         if (parsed) {
+          const baseVision = parsed.readingVision || 0.0;
+          setBaseReadingVision(baseVision);
           setSettings((prev) => ({
             ...prev,
-            readingVision: parsed.readingVision || 0.0,
+            readingVision: baseVision,
             contrastBoost: parsed.contrastBoost,
             edgeEnhancement: parsed.edgeEnhancement,
           }));
@@ -128,12 +157,14 @@ export const useVisionCorrection = (): UseVisionCorrectionReturn => {
         console.warn("Failed to load calibration data:", e);
       }
     }
-    
+
     // CRITICAL FIX: Load legacy calibration value from VisionCalibration page
     else if (legacyCalibrationValue) {
       const calibrationVal = parseFloat(legacyCalibrationValue);
-      console.log(`🔧 VisionHook: Loading legacy calibration: +${calibrationVal.toFixed(2)}D`);
-      
+      console.log(
+        `🔧 VisionHook: Loading legacy calibration: +${calibrationVal.toFixed(2)}D`,
+      );
+
       if (calibrationVal > 0) {
         // Create calibration data from legacy value
         const legacyCalibrationData: CalibrationData = {
@@ -142,15 +173,21 @@ export const useVisionCorrection = (): UseVisionCorrectionReturn => {
           edgeEnhancement: 25,
           timestamp: Date.now(),
         };
-        
+
         setCalibrationData(legacyCalibrationData);
+        setBaseReadingVision(calibrationVal);
         setSettings((prev) => ({
           ...prev,
           readingVision: calibrationVal,
           isEnabled: visionEnabled === "true",
         }));
-        
-        console.log(`✅ VisionHook: Applied legacy calibration +${calibrationVal.toFixed(2)}D to settings`);
+
+        console.log(
+          `✅ VisionHook: Applied legacy calibration +${calibrationVal.toFixed(2)}D to settings`,
+        );
+        console.log(
+          `📱 VisionHook: Device type: ${mobileDetection.deviceType}, adjustment: +${mobileDetection.calibrationAdjustment}D`,
+        );
       }
     }
   }, []);
@@ -161,19 +198,34 @@ export const useVisionCorrection = (): UseVisionCorrectionReturn => {
   }, [settings]);
 
   // Update settings function
-  const updateSettings = useCallback((newSettings: Partial<VisionSettings>) => {
-    setSettings((prev) => {
-      const updated = { ...prev, ...newSettings };
+  const updateSettings = useCallback(
+    (newSettings: Partial<VisionSettings>) => {
+      setSettings((prev) => {
+        const updated = { ...prev, ...newSettings };
 
-      // CRITICAL FIX: Clear processing state so images can be reprocessed with new settings
-      if (engineRef.current) {
-        engineRef.current.clearProcessingState();
-        engineRef.current.updateSettings(updated);
-      }
+        // Update base reading vision if it's being changed
+        if (newSettings.readingVision !== undefined) {
+          setBaseReadingVision(newSettings.readingVision);
+        }
 
-      return updated;
-    });
-  }, []);
+        // CRITICAL FIX: Clear processing state so images can be reprocessed with new settings
+        if (engineRef.current) {
+          engineRef.current.clearProcessingState();
+          // Apply mobile-adjusted settings to engine
+          const adjustedUpdated = {
+            ...updated,
+            readingVision:
+              (newSettings.readingVision ?? prev.readingVision) +
+              mobileDetection.calibrationAdjustment,
+          };
+          engineRef.current.updateSettings(adjustedUpdated);
+        }
+
+        return updated;
+      });
+    },
+    [mobileDetection.calibrationAdjustment],
+  );
 
   // Toggle enabled state
   const toggleEnabled = useCallback(() => {
@@ -185,6 +237,9 @@ export const useVisionCorrection = (): UseVisionCorrectionReturn => {
     (data: CalibrationData) => {
       setCalibrationData(data);
       localStorage.setItem(CALIBRATION_KEY, JSON.stringify(data));
+
+      // Store base reading vision (without mobile adjustment)
+      setBaseReadingVision(data.readingVision);
 
       // Apply calibration to current settings
       updateSettings({
@@ -261,7 +316,11 @@ export const useVisionCorrection = (): UseVisionCorrectionReturn => {
 
         images.forEach((img) => {
           // CRITICAL FIX: Only process images that haven't been processed yet
-          if (img.complete && !img.hasAttribute("data-vision-processed") && !img.hasAttribute("data-vision-processing")) {
+          if (
+            img.complete &&
+            !img.hasAttribute("data-vision-processed") &&
+            !img.hasAttribute("data-vision-processing")
+          ) {
             processElement(img);
           }
         });
@@ -335,16 +394,31 @@ export const useVisionCorrection = (): UseVisionCorrectionReturn => {
 
               newImages?.forEach((img) => {
                 // CRITICAL FIX: Only process new images that haven't been processed yet
-                if (img.complete && !img.hasAttribute("data-vision-processed") && !img.hasAttribute("data-vision-processing")) {
+                if (
+                  img.complete &&
+                  !img.hasAttribute("data-vision-processed") &&
+                  !img.hasAttribute("data-vision-processing")
+                ) {
                   processElement(img);
-                } else if (!img.complete && !img.hasAttribute("data-vision-processed") && !img.hasAttribute("data-vision-processing")) {
-                  img.addEventListener("load", () => {
-                    if (!img.hasAttribute("data-vision-processed") && !img.hasAttribute("data-vision-processing")) {
-                      processElement(img);
-                    }
-                  }, {
-                    once: true,
-                  });
+                } else if (
+                  !img.complete &&
+                  !img.hasAttribute("data-vision-processed") &&
+                  !img.hasAttribute("data-vision-processing")
+                ) {
+                  img.addEventListener(
+                    "load",
+                    () => {
+                      if (
+                        !img.hasAttribute("data-vision-processed") &&
+                        !img.hasAttribute("data-vision-processing")
+                      ) {
+                        processElement(img);
+                      }
+                    },
+                    {
+                      once: true,
+                    },
+                  );
                 }
               });
 
@@ -449,6 +523,12 @@ export const useVisionCorrection = (): UseVisionCorrectionReturn => {
     // Calibration helpers
     runVisionTest,
     resetSettings,
+
+    // Mobile calibration
+    adjustedReadingVision,
+    baseReadingVision,
+    deviceType: mobileDetection.deviceType,
+    calibrationAdjustment: mobileDetection.calibrationAdjustment,
   };
 };
 

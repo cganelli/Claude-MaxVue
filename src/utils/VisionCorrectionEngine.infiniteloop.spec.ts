@@ -5,16 +5,31 @@ import { VisionCorrectionEngine } from "./VisionCorrectionEngine";
 Object.defineProperty(globalThis, "document", {
   value: {
     createElement: (tagName: string) => {
+      const attributes = new Map<string, string>();
       const element = {
         tagName: tagName.toUpperCase(),
         src: "",
         alt: "",
         className: "",
-        style: { cssText: "", display: "" },
-        setAttribute: vi.fn(),
-        getAttribute: vi.fn().mockReturnValue(null),
-        hasAttribute: vi.fn().mockReturnValue(false),
-        removeAttribute: vi.fn(),
+        style: {
+          cssText: "",
+          display: "",
+          filter: "",
+          transition: "",
+          visibility: "",
+        },
+        setAttribute: vi.fn((name: string, value: string) => {
+          attributes.set(name, value);
+        }),
+        getAttribute: vi.fn((name: string) => {
+          return attributes.get(name) || null;
+        }),
+        hasAttribute: vi.fn((name: string) => {
+          return attributes.has(name);
+        }),
+        removeAttribute: vi.fn((name: string) => {
+          attributes.delete(name);
+        }),
         classList: {
           add: vi.fn(),
           remove: vi.fn(),

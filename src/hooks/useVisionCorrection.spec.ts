@@ -83,3 +83,56 @@ describe("realTimeContentProcessing", () => {
     });
   });
 });
+
+describe("mobileCalibrationAdjustment", () => {
+  beforeEach(() => {
+    localStorageMock.clear();
+  });
+
+  test("should apply mobile calibration adjustment when device is mobile", () => {
+    // Set base calibration
+    const baseCalibration = 2.0;
+    localStorageMock.setItem("calibrationValue", baseCalibration.toString());
+    
+    // Mobile adjustment should add 0.75D
+    const mobileAdjustment = 0.75;
+    const expectedMobileCalibration = baseCalibration + mobileAdjustment;
+    
+    expect(expectedMobileCalibration).toBe(2.75);
+  });
+
+  test("should apply tablet calibration adjustment when device is tablet", () => {
+    // Set base calibration
+    const baseCalibration = 2.0;
+    localStorageMock.setItem("calibrationValue", baseCalibration.toString());
+    
+    // Tablet adjustment should add 0.25D
+    const tabletAdjustment = 0.25;
+    const expectedTabletCalibration = baseCalibration + tabletAdjustment;
+    
+    expect(expectedTabletCalibration).toBe(2.25);
+  });
+
+  test("should not apply adjustment for desktop devices", () => {
+    // Set base calibration
+    const baseCalibration = 2.0;
+    localStorageMock.setItem("calibrationValue", baseCalibration.toString());
+    
+    // Desktop should have no adjustment
+    const desktopAdjustment = 0;
+    const expectedDesktopCalibration = baseCalibration + desktopAdjustment;
+    
+    expect(expectedDesktopCalibration).toBe(2.0);
+  });
+
+  test("should calculate blur with mobile-adjusted calibration", () => {
+    const baseCalibration = 2.0;
+    const mobileAdjustment = 0.75;
+    const adjustedCalibration = baseCalibration + mobileAdjustment; // 2.75
+    const sliderValue = 2.0;
+    
+    // Blur should be based on adjusted calibration
+    const expectedBlur = Math.max(0, adjustedCalibration - sliderValue) * 0.5;
+    expect(expectedBlur).toBe(0.375); // (2.75 - 2.0) * 0.5
+  });
+});

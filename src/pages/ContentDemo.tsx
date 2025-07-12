@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { VisionProcessor } from "../components/VisionProcessor";
 import { useVisionCorrection } from "../hooks/useVisionCorrection";
+import { useMobileDetection } from "../hooks/useMobileDetection";
 import WorkingCameraDemo from "../components/WorkingCameraDemo";
 import NativeAppDemo from "../components/NativeAppDemo";
 // Removed unused imports - using local components instead
@@ -302,6 +303,9 @@ const ContentDemo: React.FC = () => {
   // Use the vision correction hook to access current settings
   const visionHook = useVisionCorrection();
 
+  // Use mobile detection hook
+  const mobileDetection = useMobileDetection();
+
   // CRITICAL FIX: Single useEffect with proper dependencies to prevent infinite loop
   useEffect(() => {
     // CRITICAL FIX: Prevent multiple simultaneous loads
@@ -327,11 +331,17 @@ const ContentDemo: React.FC = () => {
         ),
       });
 
-      const calibrationVal = parseFloat(savedCalibration || "0");
-      setCalibrationValue(calibrationVal);
+      const baseCalibrationVal = parseFloat(savedCalibration || "0");
+      // Apply mobile adjustment to calibration
+      const adjustedCalibrationVal =
+        mobileDetection.getAdjustedCalibration(baseCalibrationVal);
+      setCalibrationValue(adjustedCalibrationVal);
 
       console.log(
-        `✅ ContentDemo: Loaded calibration: +${calibrationVal.toFixed(2)}D`,
+        `✅ ContentDemo: Loaded calibration: +${baseCalibrationVal.toFixed(2)}D (base) → +${adjustedCalibrationVal.toFixed(2)}D (adjusted for ${mobileDetection.deviceType})`,
+      );
+      console.log(
+        `📱 ContentDemo: Device: ${mobileDetection.deviceType}, Viewing distance: ${mobileDetection.viewingDistance}", Adjustment: +${mobileDetection.calibrationAdjustment}D`,
       );
 
       // Enable vision correction if it was previously enabled
@@ -376,6 +386,29 @@ const ContentDemo: React.FC = () => {
             processing with adaptive sharpening algorithms to enhance your
             visual experience across all types of content.
           </p>
+
+          {/* Mobile Detection Info */}
+          <div className="mt-4 inline-flex items-center space-x-2 bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 text-sm">
+            <span className="text-blue-800">
+              {mobileDetection.deviceType === "mobile" && "📱"}
+              {mobileDetection.deviceType === "tablet" && "📲"}
+              {mobileDetection.deviceType === "desktop" && "💻"}
+            </span>
+            <span className="font-medium text-blue-900">
+              {mobileDetection.deviceType.charAt(0).toUpperCase() +
+                mobileDetection.deviceType.slice(1)}{" "}
+              Device
+            </span>
+            <span className="text-blue-700">
+              • Viewing Distance: {mobileDetection.viewingDistance}"
+            </span>
+            {mobileDetection.calibrationAdjustment > 0 && (
+              <span className="text-blue-700">
+                • Calibration Adjustment: +
+                {mobileDetection.calibrationAdjustment.toFixed(2)}D
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Main Vision Processor Wrapper */}

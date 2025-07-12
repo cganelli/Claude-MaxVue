@@ -80,8 +80,10 @@ describe("Demo Route Deployment", () => {
       // Should be HTTPS for camera access
       expect(urlObj.protocol).toBe("https:");
 
-      // Should have demo path
-      expect(urlObj.pathname.includes("demo")).toBe(true);
+      // Should have demo path OR demo subdomain
+      const hasDemo =
+        urlObj.pathname.includes("demo") || urlObj.hostname.includes("demo");
+      expect(hasDemo).toBe(true);
 
       // Domain should be maxvue.app or subdomain
       expect(urlObj.hostname.includes("maxvue.app")).toBe(true);

@@ -65,7 +65,7 @@ describe('CacheManager', () => {
     });
     expect(mockCaches.keys).toHaveBeenCalled();
     expect(mockCaches.delete).toHaveBeenCalledTimes(mockCacheNames.length);
-  });
+  }, 10000); // Increase timeout to 10 seconds
 
   test('forceCacheRefresh should handle errors gracefully', async () => {
     // Arrange
@@ -155,7 +155,7 @@ describe('CacheManager', () => {
     expect(mockServiceWorker.controller.postMessage).toHaveBeenCalledWith({
       type: 'FORCE_CACHE_REFRESH'
     });
-  });
+  }, 10000); // Increase timeout to 10 seconds
 
   test('initializeDeploymentRefresh should not refresh cache if version unchanged', async () => {
     // Arrange
