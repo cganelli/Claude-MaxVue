@@ -159,7 +159,7 @@ describe("useMobileDetection", () => {
 
       // Remove ontouchstart if it exists
       if ("ontouchstart" in window) {
-        delete (window as any).ontouchstart;
+        delete (window as Record<string, unknown>).ontouchstart;
       }
 
       // Also need to ensure matchMedia returns false for pointer: coarse
@@ -172,7 +172,7 @@ describe("useMobileDetection", () => {
         addEventListener: vi.fn(),
         removeEventListener: vi.fn(),
         dispatchEvent: vi.fn(),
-      })) as any;
+      })) as unknown as typeof window.matchMedia;
 
       const { result } = renderHook(() => useMobileDetection());
 
@@ -313,6 +313,155 @@ describe("useMobileDetection", () => {
       const adjusted = result.current.getAdjustedCalibration(baseCalibration);
 
       expect(adjusted).toBe(2.0); // No adjustment for desktop
+    });
+  });
+
+  describe("CRITICAL: Mobile Device Detection Accuracy", () => {
+    it("should detect ALL modern iPhone user agents correctly", () => {
+      const iPhoneUserAgents = [
+        // iPhone 15 Pro Max
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+        // iPhone 14
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1",
+        // iPhone 13
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        // iPhone SE
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 15_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Mobile/15E148 Safari/604.1",
+        // iPhone with Chrome
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/119.0.0.0 Mobile/15E148 Safari/604.38",
+        // iPhone with Firefox
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/119.0 Mobile/15E148 Safari/605.1.15",
+      ];
+
+      iPhoneUserAgents.forEach((userAgent) => {
+        // Reset window state
+        Object.defineProperty(window.navigator, "userAgent", {
+          value: userAgent,
+          writable: true,
+          configurable: true,
+        });
+        window.innerWidth = 390; // iPhone 14 Pro width
+
+        const { result } = renderHook(() => useMobileDetection());
+
+        expect(result.current.isMobile).toBe(true);
+        expect(result.current.deviceType).toBe("mobile");
+        expect(result.current.calibrationAdjustment).toBe(1.75);
+      });
+    });
+
+    it("should detect ALL modern Android phone user agents correctly", () => {
+      const androidUserAgents = [
+        // Samsung Galaxy S23
+        "Mozilla/5.0 (Linux; Android 13; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
+        // Google Pixel 8
+        "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
+        // OnePlus 11
+        "Mozilla/5.0 (Linux; Android 13; CPH2449) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
+        // Xiaomi 13
+        "Mozilla/5.0 (Linux; Android 13; 2211133C) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
+        // Android with Firefox
+        "Mozilla/5.0 (Android 13; Mobile; rv:119.0) Gecko/119.0 Firefox/119.0",
+        // Android with Edge
+        "Mozilla/5.0 (Linux; Android 13; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36 EdgA/119.0.0.0",
+      ];
+
+      androidUserAgents.forEach((userAgent) => {
+        // Reset window state
+        Object.defineProperty(window.navigator, "userAgent", {
+          value: userAgent,
+          writable: true,
+          configurable: true,
+        });
+        window.innerWidth = 412; // Common Android width
+
+        const { result } = renderHook(() => useMobileDetection());
+
+        expect(result.current.isMobile).toBe(true);
+        expect(result.current.deviceType).toBe("mobile");
+        expect(result.current.calibrationAdjustment).toBe(1.75);
+      });
+    });
+
+    it("should NOT misidentify mobile devices as desktop", () => {
+      // User's actual case - mobile device detected as desktop
+      const problematicUserAgents = [
+        // Mobile Safari on iPhone that might be misidentified
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15",
+        // Android Chrome that might be misidentified
+        "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/119.0.0.0",
+        // Mobile device with desktop request
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+      ];
+
+      problematicUserAgents.forEach((userAgent) => {
+        // Set up mobile screen size
+        window.innerWidth = 390;
+        window.innerHeight = 844;
+
+        Object.defineProperty(window.navigator, "userAgent", {
+          value: userAgent,
+          writable: true,
+          configurable: true,
+        });
+
+        const { result } = renderHook(() => useMobileDetection());
+
+        // Should detect as mobile based on screen size even with ambiguous UA
+        if (window.innerWidth < 768) {
+          expect(result.current.isMobile).toBe(true);
+          expect(result.current.deviceType).toBe("mobile");
+        }
+      });
+    });
+
+    it("should use screen size as fallback when user agent is ambiguous", () => {
+      // Desktop user agent but mobile screen size
+      Object.defineProperty(window.navigator, "userAgent", {
+        value:
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+        writable: true,
+        configurable: true,
+      });
+
+      // Mobile screen dimensions
+      window.innerWidth = 375;
+      window.innerHeight = 812;
+
+      const { result } = renderHook(() => useMobileDetection());
+
+      // Should detect as mobile based on screen size
+      expect(result.current.deviceType).toBe("mobile");
+      expect(result.current.viewport.isSmall).toBe(true);
+      expect(result.current.calibrationAdjustment).toBe(1.75);
+    });
+
+    it("should handle touch capability detection for mobile devices", () => {
+      // Setup mobile with touch
+      Object.defineProperty(window.navigator, "userAgent", {
+        value: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)",
+        writable: true,
+        configurable: true,
+      });
+      window.innerWidth = 390;
+
+      // Mock touch support
+      Object.defineProperty(window, "ontouchstart", {
+        value: true,
+        writable: true,
+        configurable: true,
+      });
+
+      Object.defineProperty(window.navigator, "maxTouchPoints", {
+        value: 5,
+        writable: true,
+        configurable: true,
+      });
+
+      const { result } = renderHook(() => useMobileDetection());
+
+      expect(result.current.hasTouch).toBe(true);
+      expect(result.current.isMobile).toBe(true);
     });
   });
 

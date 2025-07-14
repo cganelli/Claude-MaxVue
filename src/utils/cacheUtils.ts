@@ -18,7 +18,7 @@ export class CacheManager {
   }
 
   private async initServiceWorker(): Promise<void> {
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
       this.serviceWorker = navigator.serviceWorker.controller;
     }
   }
@@ -29,46 +29,46 @@ export class CacheManager {
    */
   public async forceCacheRefresh(): Promise<CacheRefreshResult> {
     try {
-      console.log('🔄 CacheManager: Forcing cache refresh for new deployment');
+      console.log("🔄 CacheManager: Forcing cache refresh for new deployment");
 
-      if (!('serviceWorker' in navigator)) {
-        throw new Error('Service worker not supported');
+      if (!("serviceWorker" in navigator)) {
+        throw new Error("Service worker not supported");
       }
 
       // Send message to service worker to clear all caches
       if (navigator.serviceWorker.controller) {
         navigator.serviceWorker.controller.postMessage({
-          type: 'FORCE_CACHE_REFRESH'
+          type: "FORCE_CACHE_REFRESH",
         });
       }
 
       // Clear any browser caches programmatically
-      if ('caches' in window) {
+      if ("caches" in window) {
         const cacheNames = await caches.keys();
         await Promise.all(
-          cacheNames.map(cacheName => {
-            console.log('🗑️ CacheManager: Clearing cache:', cacheName);
+          cacheNames.map((cacheName) => {
+            console.log("🗑️ CacheManager: Clearing cache:", cacheName);
             return caches.delete(cacheName);
-          })
+          }),
         );
       }
 
       // Clear localStorage cache flags
       this.clearLocalStorageCache();
 
-      console.log('✅ CacheManager: Cache refresh complete');
+      console.log("✅ CacheManager: Cache refresh complete");
 
       return {
         success: true,
         cacheCleared: true,
-        version: await this.getServiceWorkerVersion()
+        version: await this.getServiceWorkerVersion(),
       };
     } catch (error) {
-      console.error('❌ CacheManager: Failed to refresh cache:', error);
+      console.error("❌ CacheManager: Failed to refresh cache:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        cacheCleared: false
+        error: error instanceof Error ? error.message : "Unknown error",
+        cacheCleared: false,
       };
     }
   }
@@ -77,7 +77,7 @@ export class CacheManager {
    * Check if a new service worker is available
    */
   public async checkForUpdates(): Promise<boolean> {
-    if (!('serviceWorker' in navigator)) {
+    if (!("serviceWorker" in navigator)) {
       return false;
     }
 
@@ -88,7 +88,7 @@ export class CacheManager {
         return !!registration.waiting;
       }
     } catch (error) {
-      console.warn('CacheManager: Failed to check for updates:', error);
+      console.warn("CacheManager: Failed to check for updates:", error);
     }
 
     return false;
@@ -100,51 +100,70 @@ export class CacheManager {
   public async getServiceWorkerVersion(): Promise<string> {
     return new Promise((resolve) => {
       if (!navigator.serviceWorker.controller) {
-        resolve('unknown');
+        resolve("unknown");
         return;
       }
 
       const channel = new MessageChannel();
       channel.port1.onmessage = (event) => {
-        resolve(event.data?.version || 'unknown');
+        resolve(event.data?.version || "unknown");
       };
 
-      navigator.serviceWorker.controller.postMessage(
-        { type: 'GET_VERSION' },
-        [channel.port2]
-      );
+      navigator.serviceWorker.controller.postMessage({ type: "GET_VERSION" }, [
+        channel.port2,
+      ]);
 
       // Timeout after 5 seconds
-      setTimeout(() => resolve('timeout'), 5000);
+      setTimeout(() => resolve("timeout"), 5000);
     });
   }
 
   /**
    * Clear localStorage cache flags and force fresh data load
+   * CRITICAL: Preserves user calibration settings
    */
   private clearLocalStorageCache(): void {
-    const cacheKeys = [
-      'maxvue_vision_settings',
-      'maxvue_calibration_data',
-      'app_version',
-      'last_cache_clear'
+    // Keys that should be cleared
+    const cacheKeys = ["app_version", "last_cache_clear"];
+
+    // CRITICAL: Keys that must be preserved (user calibration)
+    const preserveKeys = [
+      "calibrationValue",
+      "maxvue_vision_settings",
+      "maxvue_calibration_data",
+      "visionCorrectionEnabled",
+      "estimatedSphere",
     ];
 
-    cacheKeys.forEach(key => {
+    // Log preservation of user settings
+    console.log("🔒 CacheManager: Preserving user calibration settings");
+
+    preserveKeys.forEach((key) => {
+      const value = localStorage.getItem(key);
+      if (value) {
+        console.log(
+          `✅ CacheManager: Preserving ${key}: ${key.includes("calibration") ? value : "present"}`,
+        );
+      }
+    });
+
+    // Only clear non-critical cache keys
+    cacheKeys.forEach((key) => {
       if (localStorage.getItem(key)) {
-        console.log(`🗑️ CacheManager: Clearing localStorage cache: ${key}`);
+        console.log(`🗑️ CacheManager: Clearing cache key: ${key}`);
+        localStorage.removeItem(key);
       }
     });
 
     // Set cache clear timestamp
-    localStorage.setItem('last_cache_clear', Date.now().toString());
+    localStorage.setItem("last_cache_clear", Date.now().toString());
   }
 
   /**
    * Force page reload after cache clear
    */
   public forceReload(): void {
-    console.log('🔄 CacheManager: Forcing page reload for fresh content');
+    console.log("🔄 CacheManager: Forcing page reload for fresh content");
     window.location.reload();
   }
 
@@ -153,18 +172,20 @@ export class CacheManager {
    */
   public async initializeDeploymentRefresh(): Promise<void> {
     // Check if this is a new deployment
-    const currentVersion = '2.0.1'; // Updated with manifest version
-    const lastVersion = localStorage.getItem('app_version');
+    const currentVersion = "2.0.1"; // Updated with manifest version
+    const lastVersion = localStorage.getItem("app_version");
 
     if (lastVersion !== currentVersion) {
-      console.log(`🚀 CacheManager: New deployment detected (${lastVersion} → ${currentVersion})`);
-      console.log('🔄 CacheManager: Refreshing cache for new fixes');
+      console.log(
+        `🚀 CacheManager: New deployment detected (${lastVersion} → ${currentVersion})`,
+      );
+      console.log("🔄 CacheManager: Refreshing cache for new fixes");
 
       // Force cache refresh for new deployment
       await this.forceCacheRefresh();
 
       // Update stored version
-      localStorage.setItem('app_version', currentVersion);
+      localStorage.setItem("app_version", currentVersion);
 
       // Optionally force reload
       // this.forceReload();
@@ -180,17 +201,17 @@ export const cacheManager = new CacheManager();
  * Call this when deploying critical fixes
  */
 export const deploymentRefresh = async (): Promise<void> => {
-  console.log('🚀 Starting deployment cache refresh...');
+  console.log("🚀 Starting deployment cache refresh...");
 
   const result = await cacheManager.forceCacheRefresh();
 
   if (result.success) {
-    console.log('✅ Cache refresh successful, reloading app...');
+    console.log("✅ Cache refresh successful, reloading app...");
     setTimeout(() => {
       cacheManager.forceReload();
     }, 1000);
   } else {
-    console.error('❌ Cache refresh failed:', result.error);
+    console.error("❌ Cache refresh failed:", result.error);
   }
 };
 
@@ -198,7 +219,7 @@ export const deploymentRefresh = async (): Promise<void> => {
  * Check if cache needs refresh based on build timestamp
  */
 export const checkCacheNeedsRefresh = (): boolean => {
-  const lastCacheClear = localStorage.getItem('last_cache_clear');
+  const lastCacheClear = localStorage.getItem("last_cache_clear");
   if (!lastCacheClear) return true;
 
   const timeSinceLastClear = Date.now() - parseInt(lastCacheClear);

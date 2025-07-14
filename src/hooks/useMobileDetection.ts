@@ -18,10 +18,10 @@ export interface MobileDetectionResult {
   getAdjustedCalibration: (baseCalibration: number) => number;
 }
 
-// Device detection patterns
+// Device detection patterns - Enhanced for comprehensive detection
 const MOBILE_PATTERNS =
-  /Android|iPhone|iPod|BlackBerry|Windows Phone|webOS|Opera Mini|IEMobile/i;
-const TABLET_PATTERNS = /iPad|tablet|playbook|silk/i;
+  /Android(?!.*Tablet)|iPhone|iPod|BlackBerry|Windows Phone|webOS|Opera Mini|IEMobile|Mobile|mobi/i;
+const TABLET_PATTERNS = /iPad|tablet|playbook|silk|Tablet/i;
 
 // Viewport breakpoints
 const VIEWPORT_BREAKPOINTS = {
@@ -54,26 +54,36 @@ export const useMobileDetection = (): MobileDetectionResult => {
   });
 
   // Detect device type based on user agent and screen size
+  // CRITICAL: Uses screen size as primary indicator with user agent as enhancement
   const detectDeviceType = useCallback((): "mobile" | "tablet" | "desktop" => {
     if (typeof window === "undefined") return "desktop";
 
     const userAgent = window.navigator.userAgent;
     const screenWidth = window.innerWidth;
 
-    // Check user agent patterns
+    // PRIMARY: Mobile detection - prioritize mobile patterns OR small screen
     if (
-      MOBILE_PATTERNS.test(userAgent) &&
+      MOBILE_PATTERNS.test(userAgent) ||
       screenWidth < VIEWPORT_BREAKPOINTS.small
     ) {
-      return "mobile";
+      // Double-check it's not a tablet masquerading as mobile
+      if (!TABLET_PATTERNS.test(userAgent)) {
+        return "mobile";
+      }
     }
 
+    // SECONDARY: Tablet detection - check patterns AND medium screen size
     if (
       TABLET_PATTERNS.test(userAgent) ||
       (screenWidth >= VIEWPORT_BREAKPOINTS.small &&
         screenWidth <= VIEWPORT_BREAKPOINTS.medium)
     ) {
       return "tablet";
+    }
+
+    // FALLBACK: Small screen without mobile user agent = mobile device
+    if (screenWidth < VIEWPORT_BREAKPOINTS.small) {
+      return "mobile";
     }
 
     return "desktop";
