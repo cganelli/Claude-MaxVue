@@ -37,11 +37,14 @@ const VIEWING_DISTANCES = {
   desktop: 22.5, // 21-24" average for desktop/laptop
 };
 
-// Calibration adjustments for different devices
+// Calibration adjustments for different devices - PHYSICS-BASED CALCULATION
+// Desktop viewing distance: 22.5" (0.5715m) ≈ 1.75D requirement
+// Mobile viewing distance: 14" (0.3556m) ≈ 2.81D requirement
+// Difference: 2.81 - 1.75 = 1.06D minimum, adjusted to 1.75D for real-world testing
 const CALIBRATION_ADJUSTMENTS = {
-  mobile: 0.75, // +0.5D to +1.0D adjustment
-  tablet: 0.25, // Small adjustment for tablets
-  desktop: 0, // No adjustment for desktop
+  mobile: 1.75, // Strong distance-based adjustment for closer viewing
+  tablet: 0.5, // Moderate adjustment for intermediate distance
+  desktop: 0, // No adjustment for desktop baseline
 };
 
 export const useMobileDetection = (): MobileDetectionResult => {

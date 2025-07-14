@@ -192,7 +192,7 @@ describe("useMobileDetection", () => {
 
       const { result } = renderHook(() => useMobileDetection());
 
-      expect(result.current.calibrationAdjustment).toBe(0.75); // +0.5D to +1.0D adjustment
+      expect(result.current.calibrationAdjustment).toBe(1.75); // Strong distance-based adjustment
     });
 
     it("should provide no calibration adjustment for desktop", () => {
@@ -220,7 +220,7 @@ describe("useMobileDetection", () => {
 
       const { result } = renderHook(() => useMobileDetection());
 
-      expect(result.current.calibrationAdjustment).toBe(0.25); // Small adjustment for tablets
+      expect(result.current.calibrationAdjustment).toBe(0.5); // Moderate adjustment for tablets
     });
   });
 
@@ -297,7 +297,7 @@ describe("useMobileDetection", () => {
       const baseCalibration = 2.0;
       const adjusted = result.current.getAdjustedCalibration(baseCalibration);
 
-      expect(adjusted).toBe(2.75); // 2.0 + 0.75 mobile adjustment
+      expect(adjusted).toBe(3.75); // 2.0 + 1.75 mobile adjustment
     });
 
     it("should not adjust calibration for desktop", () => {
@@ -313,6 +313,102 @@ describe("useMobileDetection", () => {
       const adjusted = result.current.getAdjustedCalibration(baseCalibration);
 
       expect(adjusted).toBe(2.0); // No adjustment for desktop
+    });
+  });
+
+  describe("CRITICAL: Real-world mobile calibration requirements", () => {
+    it("should provide strong mobile calibration adjustment based on viewing distance", () => {
+      // Setup mobile environment
+      Object.defineProperty(window.navigator, "userAgent", {
+        value: "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)",
+        writable: true,
+        configurable: true,
+      });
+      window.innerWidth = 375;
+
+      const { result } = renderHook(() => useMobileDetection());
+
+      // CRITICAL TEST: Mobile adjustment should be at least +1.5D to +2.0D
+      // User feedback: 0.0D on mobile = +1.0D desktop clarity
+      // This means mobile needs approximately +2.0D MORE adjustment
+      expect(result.current.calibrationAdjustment).toBeGreaterThanOrEqual(1.5);
+      expect(result.current.calibrationAdjustment).toBeLessThanOrEqual(2.0);
+    });
+
+    it("should calculate distance-based diopter adjustment correctly", () => {
+      // Setup mobile environment
+      Object.defineProperty(window.navigator, "userAgent", {
+        value: "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)",
+        writable: true,
+        configurable: true,
+      });
+      window.innerWidth = 375;
+
+      const { result } = renderHook(() => useMobileDetection());
+
+      // CRITICAL TEST: Mobile 0.0D should require significantly more correction than desktop
+      // Based on physics: closer distance = higher diopter requirement
+      const mobileBaseBlur = result.current.getAdjustedCalibration(0.0);
+
+      // Mobile 0.0D should become +1.5D to +2.0D after adjustment
+      expect(mobileBaseBlur).toBeGreaterThanOrEqual(1.5);
+      expect(mobileBaseBlur).toBeLessThanOrEqual(2.0);
+    });
+
+    it("should ensure mobile +2.0D provides equivalent clarity to desktop +2.0D", () => {
+      // Test mobile environment
+      Object.defineProperty(window.navigator, "userAgent", {
+        value: "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)",
+        writable: true,
+        configurable: true,
+      });
+      window.innerWidth = 375;
+
+      const { result: mobileResult } = renderHook(() => useMobileDetection());
+
+      // Reset to desktop environment
+      Object.defineProperty(window.navigator, "userAgent", {
+        value: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+        writable: true,
+        configurable: true,
+      });
+      window.innerWidth = 1920;
+
+      const { result: desktopResult } = renderHook(() => useMobileDetection());
+
+      // CRITICAL TEST: When user sets +2.0D on mobile, the effective blur should be similar
+      // to desktop +2.0D, meaning mobile needs less additional blur since base is higher
+      const mobileCalibratedValue =
+        mobileResult.current.getAdjustedCalibration(2.0);
+      const desktopCalibratedValue =
+        desktopResult.current.getAdjustedCalibration(2.0);
+
+      // Mobile at +2.0D setting should reach +3.5D to +4.0D total
+      expect(mobileCalibratedValue).toBeGreaterThanOrEqual(3.5);
+      expect(mobileCalibratedValue).toBeLessThanOrEqual(4.0);
+
+      // Desktop should remain at +2.0D
+      expect(desktopCalibratedValue).toBe(2.0);
+    });
+
+    it("should properly implement physics-based distance adjustment", () => {
+      // Setup mobile environment
+      Object.defineProperty(window.navigator, "userAgent", {
+        value: "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)",
+        writable: true,
+        configurable: true,
+      });
+      window.innerWidth = 375;
+
+      const { result } = renderHook(() => useMobileDetection());
+
+      // CRITICAL TEST: Viewing distance should drive calibration adjustment
+      // Mobile: 14" (0.3556m) ≈ 2.81D requirement
+      // Desktop: 22.5" (0.5715m) ≈ 1.75D requirement
+      // Difference: 2.81 - 1.75 = 1.06D minimum adjustment needed
+
+      expect(result.current.viewingDistance).toBe(14); // Mobile viewing distance
+      expect(result.current.calibrationAdjustment).toBeGreaterThanOrEqual(1.0); // Physics-based minimum
     });
   });
 });

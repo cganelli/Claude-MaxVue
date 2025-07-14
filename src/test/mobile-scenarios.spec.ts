@@ -80,13 +80,13 @@ describe("Mobile Vision Correction Integration", () => {
       const { result: mobileResult } = renderHook(() => useMobileDetection());
 
       expect(mobileResult.current.deviceType).toBe("mobile");
-      expect(mobileResult.current.calibrationAdjustment).toBe(0.75);
+      expect(mobileResult.current.calibrationAdjustment).toBe(1.75);
       expect(mobileResult.current.viewingDistance).toBe(14);
 
       const baseCalibration = 2.0;
       const adjustedCalibration =
         mobileResult.current.getAdjustedCalibration(baseCalibration);
-      expect(adjustedCalibration).toBe(2.75); // +0.75D adjustment for mobile
+      expect(adjustedCalibration).toBe(3.75); // +1.75D adjustment for mobile
     });
   });
 
@@ -104,13 +104,13 @@ describe("Mobile Vision Correction Integration", () => {
       const { result: mobileResult } = renderHook(() => useMobileDetection());
 
       expect(mobileResult.current.deviceType).toBe("tablet");
-      expect(mobileResult.current.calibrationAdjustment).toBe(0.25);
+      expect(mobileResult.current.calibrationAdjustment).toBe(0.5);
       expect(mobileResult.current.viewingDistance).toBe(18);
 
       const baseCalibration = 2.0;
       const adjustedCalibration =
         mobileResult.current.getAdjustedCalibration(baseCalibration);
-      expect(adjustedCalibration).toBe(2.25); // +0.25D adjustment for tablet
+      expect(adjustedCalibration).toBe(2.5); // +0.5D adjustment for tablet
     });
   });
 
@@ -129,7 +129,7 @@ describe("Mobile Vision Correction Integration", () => {
 
       // Test blur calculation like in WorkingCameraDemo
       const readingVisionDiopter = 1.5;
-      const calibrationValue = 2.75; // Mobile-adjusted calibration (2.0 + 0.75)
+      const calibrationValue = 3.75; // Mobile-adjusted calibration (2.0 + 1.75)
 
       const baseBlurAmount =
         Math.abs(readingVisionDiopter - calibrationValue) * 0.5;
@@ -137,9 +137,9 @@ describe("Mobile Vision Correction Integration", () => {
         mobileResult.current.deviceType === "mobile" ? 1.2 : 1.0;
       const adjustedBlurAmount = baseBlurAmount * mobileBlurMultiplier;
 
-      expect(baseBlurAmount).toBe(0.625); // |1.5 - 2.75| * 0.5
+      expect(baseBlurAmount).toBe(1.125); // |1.5 - 3.75| * 0.5
       expect(mobileBlurMultiplier).toBe(1.2);
-      expect(adjustedBlurAmount).toBe(0.75); // 0.625 * 1.2
+      expect(adjustedBlurAmount).toBeCloseTo(1.35, 2); // 1.125 * 1.2
     });
 
     it("should calculate desktop blur correctly", () => {
