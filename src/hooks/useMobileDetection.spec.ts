@@ -465,6 +465,386 @@ describe("useMobileDetection", () => {
     });
   });
 
+  describe("CRITICAL: Enhanced Mobile Detection - Edge Cases", () => {
+    it("should detect problematic mobile user agents correctly", () => {
+      // EDGE CASE TEST: User agents that might not have clear "Mobile" keyword
+      const problematicMobileUserAgents = [
+        // iPhone Safari without "Mobile" keyword
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/604.1",
+        // Android without "Mobile" keyword
+        "Mozilla/5.0 (Linux; Android 13; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+        // Mobile device requesting desktop site
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+        // Minimal mobile user agent
+        "Mozilla/5.0 (iPhone)",
+        // Android tablet on small screen (should be mobile due to screen size)
+        "Mozilla/5.0 (Linux; Android 13; SM-T290) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+      ];
+
+      problematicMobileUserAgents.forEach((userAgent, index) => {
+        // Set mobile screen size to force detection
+        window.innerWidth = 375; // Standard mobile width
+        window.innerHeight = 812;
+
+        Object.defineProperty(window.navigator, "userAgent", {
+          value: userAgent,
+          writable: true,
+          configurable: true,
+        });
+
+        const { result } = renderHook(() => useMobileDetection());
+
+        expect(result.current.deviceType).toBe("mobile");
+        expect(result.current.calibrationAdjustment).toBe(1.75);
+        expect(result.current.viewingDistance).toBe(14);
+
+        console.log(
+          `✅ Edge case ${index + 1} passed: "${userAgent.substring(0, 50)}..."`,
+        );
+      });
+    });
+
+    it("should prioritize screen size over ambiguous user agents", () => {
+      // CRITICAL TEST: Screen size should be the PRIMARY detection method
+
+      const ambiguousUserAgents = [
+        // Desktop user agent on mobile screen
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+        // Tablet user agent on mobile screen
+        "Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15",
+        // Generic user agent
+        "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)",
+      ];
+
+      ambiguousUserAgents.forEach((userAgent) => {
+        // Test various mobile screen sizes
+        const mobileScreens = [
+          { width: 320, height: 568 }, // iPhone SE
+          { width: 375, height: 812 }, // iPhone 13/14
+          { width: 390, height: 844 }, // iPhone 14 Pro
+          { width: 393, height: 851 }, // iPhone 15 Pro
+          { width: 412, height: 915 }, // Android phones
+        ];
+
+        mobileScreens.forEach(({ width, height }) => {
+          window.innerWidth = width;
+          window.innerHeight = height;
+
+          Object.defineProperty(window.navigator, "userAgent", {
+            value: userAgent,
+            writable: true,
+            configurable: true,
+          });
+
+          const { result } = renderHook(() => useMobileDetection());
+
+          // Screen size should override user agent
+          expect(result.current.deviceType).toBe("mobile");
+          expect(result.current.calibrationAdjustment).toBe(1.75);
+        });
+      });
+    });
+
+    it("should handle ultra-wide mobile screens correctly", () => {
+      // EDGE CASE: Some mobile devices have unusual aspect ratios
+      const ultraWideMobileScreens = [
+        { width: 430, height: 932, device: "iPhone 14 Plus" },
+        { width: 428, height: 926, device: "iPhone 12/13 Pro Max" },
+        { width: 414, height: 896, device: "iPhone 11/XR" },
+        { width: 450, height: 1000, device: "Large Android Phone" }, // Edge case
+        { width: 480, height: 854, device: "Very Wide Phone" }, // Edge case
+      ];
+
+      Object.defineProperty(window.navigator, "userAgent", {
+        value:
+          "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+        writable: true,
+        configurable: true,
+      });
+
+      ultraWideMobileScreens.forEach(({ width, height, device }) => {
+        window.innerWidth = width;
+        window.innerHeight = height;
+
+        const { result } = renderHook(() => useMobileDetection());
+
+        expect(result.current.deviceType).toBe("mobile");
+        expect(result.current.calibrationAdjustment).toBe(1.75);
+        expect(result.current.viewingDistance).toBe(14);
+
+        console.log(
+          `✅ Ultra-wide mobile ${device} (${width}x${height}) detected correctly`,
+        );
+      });
+    });
+  });
+
+  describe("CRITICAL: Mobile Detection Debugging - Real User Cases", () => {
+    it("SHOULD FAIL: User's mobile device being detected as desktop", () => {
+      // CRITICAL TEST: This should expose the detection failure
+      // User report: "Device type: desktop, adjustment: +0D" on mobile device
+
+      // Test case 1: User's likely mobile user agent (common mobile patterns)
+      const problematicMobileUserAgents = [
+        // Mobile Safari that might lack clear mobile identifiers
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/604.1",
+        // Android Chrome without explicit "Mobile" keyword
+        "Mozilla/5.0 (Linux; Android 13; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+        // Tablet user agent on mobile-sized screen (common issue)
+        "Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/604.1",
+      ];
+
+      problematicMobileUserAgents.forEach((userAgent) => {
+        // Set mobile screen size (should force mobile detection)
+        window.innerWidth = 390; // iPhone 14 Pro
+        window.innerHeight = 844;
+
+        Object.defineProperty(window.navigator, "userAgent", {
+          value: userAgent,
+          writable: true,
+          configurable: true,
+        });
+
+        const { result } = renderHook(() => useMobileDetection());
+
+        // THIS TEST SHOULD FAIL if detection is broken
+        expect(result.current.deviceType).toBe("mobile");
+        expect(result.current.calibrationAdjustment).toBe(1.75);
+
+        // Log the failure for debugging
+        if (result.current.deviceType !== "mobile") {
+          console.error(
+            `❌ DETECTION FAILURE: UA "${userAgent}" with screen ${window.innerWidth}x${window.innerHeight} detected as "${result.current.deviceType}"`,
+          );
+        }
+      });
+    });
+
+    it("SHOULD FAIL: Mobile screen sizes not triggering mobile detection", () => {
+      // CRITICAL TEST: Common mobile screen sizes should always detect as mobile
+      const mobileScreenSizes = [
+        { width: 390, height: 844, device: "iPhone 14 Pro" },
+        { width: 393, height: 851, device: "iPhone 15 Pro" },
+        { width: 375, height: 812, device: "iPhone 13/14" },
+        { width: 414, height: 896, device: "iPhone 11/XR" },
+        { width: 360, height: 800, device: "Samsung Galaxy S21" },
+        { width: 412, height: 915, device: "Samsung Galaxy S22" },
+        { width: 393, height: 873, device: "Google Pixel 7" },
+        { width: 320, height: 568, device: "iPhone SE" },
+      ];
+
+      // Use ambiguous desktop user agent to test screen size fallback
+      Object.defineProperty(window.navigator, "userAgent", {
+        value:
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+        writable: true,
+        configurable: true,
+      });
+
+      mobileScreenSizes.forEach(({ width, height, device }) => {
+        window.innerWidth = width;
+        window.innerHeight = height;
+
+        const { result } = renderHook(() => useMobileDetection());
+
+        // THIS TEST SHOULD FAIL if screen size fallback is broken
+        expect(result.current.deviceType).toBe("mobile");
+        expect(result.current.calibrationAdjustment).toBe(1.75);
+
+        // Log the failure for debugging
+        if (result.current.deviceType !== "mobile") {
+          console.error(
+            `❌ SCREEN SIZE FAILURE: ${device} (${width}x${height}) detected as "${result.current.deviceType}"`,
+          );
+        }
+      });
+    });
+
+    it("SHOULD FAIL: Detection logic priority order issues", () => {
+      // CRITICAL TEST: Test detection priority when multiple signals conflict
+
+      // Case 1: iPad user agent + mobile screen size = should be mobile
+      Object.defineProperty(window.navigator, "userAgent", {
+        value:
+          "Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15",
+        writable: true,
+        configurable: true,
+      });
+      window.innerWidth = 390; // Mobile screen size
+      window.innerHeight = 844;
+
+      const { result: result1 } = renderHook(() => useMobileDetection());
+
+      // Screen size should override tablet user agent when screen is mobile-sized
+      expect(result1.current.deviceType).toBe("mobile");
+
+      // Case 2: Desktop user agent + mobile screen = should be mobile
+      Object.defineProperty(window.navigator, "userAgent", {
+        value: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36",
+        writable: true,
+        configurable: true,
+      });
+
+      const { result: result2 } = renderHook(() => useMobileDetection());
+
+      // Screen size should be primary detection method
+      expect(result2.current.deviceType).toBe("mobile");
+      expect(result2.current.calibrationAdjustment).toBe(1.75);
+    });
+
+    it("SHOULD FAIL: Calibration calculation for detected mobile devices", () => {
+      // CRITICAL TEST: Ensure mobile devices get proper calibration adjustment
+
+      // Setup confirmed mobile environment
+      Object.defineProperty(window.navigator, "userAgent", {
+        value:
+          "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+        writable: true,
+        configurable: true,
+      });
+      window.innerWidth = 390;
+
+      const { result } = renderHook(() => useMobileDetection());
+
+      // User reports: Mobile 0.0D = Desktop +1.0D clarity
+      // This means mobile needs +2.0D MORE than desktop for same clarity
+      const baseCalibration = 2.0; // User's desktop setting
+      const adjustedCalibration =
+        result.current.getAdjustedCalibration(baseCalibration);
+
+      // Total should be 2.0 + 1.75 = 3.75D for equivalent clarity
+      expect(adjustedCalibration).toBe(3.75);
+
+      // Test edge case: 0.0D mobile should become 1.75D
+      const zeroAdjusted = result.current.getAdjustedCalibration(0.0);
+      expect(zeroAdjusted).toBe(1.75);
+    });
+  });
+
+  describe("CRITICAL: Mobile Calibration Verification - User Requirements", () => {
+    it("should apply +1.75D mobile adjustment correctly for user's use case", () => {
+      // CRITICAL TEST: User reports mobile 0.0D = desktop +1.0D clarity
+      // This means mobile needs +2.0D MORE adjustment than desktop
+
+      // Setup mobile environment
+      Object.defineProperty(window.navigator, "userAgent", {
+        value:
+          "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+        writable: true,
+        configurable: true,
+      });
+      window.innerWidth = 390;
+      window.innerHeight = 844;
+
+      const { result } = renderHook(() => useMobileDetection());
+
+      // Verify device detected as mobile
+      expect(result.current.deviceType).toBe("mobile");
+      expect(result.current.calibrationAdjustment).toBe(1.75);
+
+      // Test user's reported scenarios
+      console.log("🧪 TESTING USER'S MOBILE CALIBRATION SCENARIOS:");
+
+      // Scenario 1: Mobile 0.0D should become 1.75D
+      const mobile0D = result.current.getAdjustedCalibration(0.0);
+      expect(mobile0D).toBe(1.75);
+      console.log(
+        `✅ Mobile 0.0D → ${mobile0D}D (should provide significant presbyopia effect)`,
+      );
+
+      // Scenario 2: User's +2.0D setting should become +3.75D
+      const mobile2D = result.current.getAdjustedCalibration(2.0);
+      expect(mobile2D).toBe(3.75);
+      console.log(`✅ Mobile +2.0D → ${mobile2D}D (user's target setting)`);
+
+      // Scenario 3: Mobile should require higher values for same clarity as desktop
+      // Desktop +1.0D equivalent should be mobile +2.75D
+      const mobileEquivalentTo1D = result.current.getAdjustedCalibration(1.0);
+      expect(mobileEquivalentTo1D).toBe(2.75);
+      console.log(
+        `✅ Mobile +1.0D → ${mobileEquivalentTo1D}D (equivalent to desktop +1.0D)`,
+      );
+    });
+
+    it("should match user's reported mobile experience: 0.0D clearest, gets blurrier with higher settings", () => {
+      // CRITICAL TEST: User reports that mobile 0.0D is clearest, which is WRONG
+      // This test verifies our calibration fix addresses this issue
+
+      // Setup mobile environment
+      Object.defineProperty(window.navigator, "userAgent", {
+        value:
+          "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+        writable: true,
+        configurable: true,
+      });
+      window.innerWidth = 390;
+
+      const { result } = renderHook(() => useMobileDetection());
+
+      // With our fix, mobile should get proper presbyopia simulation
+      const adjustedValues = [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0].map(
+        (base) => ({
+          base,
+          adjusted: result.current.getAdjustedCalibration(base),
+          shouldBeBlurrier: base > 0,
+        }),
+      );
+
+      console.log("🧪 MOBILE CALIBRATION PROGRESSION:");
+      adjustedValues.forEach(({ base, adjusted, shouldBeBlurrier }) => {
+        console.log(
+          `  Mobile ${base}D → ${adjusted}D ${shouldBeBlurrier ? "(should be blurrier)" : "(baseline)"}`,
+        );
+
+        // All mobile values should be significantly higher than desktop equivalent
+        expect(adjusted).toBeGreaterThanOrEqual(base + 1.75);
+      });
+
+      // The progression should increase properly
+      expect(adjustedValues[0].adjusted).toBe(1.75); // 0.0 + 1.75
+      expect(adjustedValues[4].adjusted).toBe(3.75); // 2.0 + 1.75
+      expect(adjustedValues[6].adjusted).toBe(4.75); // 3.0 + 1.75
+    });
+
+    it("should log device detection results for user debugging", () => {
+      // CRITICAL TEST: Verify user will see proper detection logs
+
+      const consoleSpy = vi.spyOn(console, "log");
+
+      // Setup user's likely mobile environment
+      Object.defineProperty(window.navigator, "userAgent", {
+        value:
+          "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/604.1",
+        writable: true,
+        configurable: true,
+      });
+      window.innerWidth = 390;
+      window.innerHeight = 844;
+
+      const { result } = renderHook(() => useMobileDetection());
+
+      // User should see logs indicating mobile detection
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "🎯 Device detection:",
+        expect.objectContaining({
+          type: "mobile",
+          adjustment: "+1.75D",
+          viewingDistance: '14"',
+        }),
+      );
+
+      // Log message for user
+      console.log(
+        "🎯 USER DEBUG INFO: Device detection logs are working correctly",
+      );
+      console.log(
+        `✅ Device type: ${result.current.deviceType}, adjustment: +${result.current.calibrationAdjustment}D`,
+      );
+
+      consoleSpy.mockRestore();
+    });
+  });
+
   describe("CRITICAL: Real-world mobile calibration requirements", () => {
     it("should provide strong mobile calibration adjustment based on viewing distance", () => {
       // Setup mobile environment

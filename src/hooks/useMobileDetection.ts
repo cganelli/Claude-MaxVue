@@ -19,9 +19,11 @@ export interface MobileDetectionResult {
 }
 
 // Device detection patterns - Enhanced for comprehensive detection
+// ENHANCED: More aggressive mobile detection patterns
 const MOBILE_PATTERNS =
-  /Android(?!.*Tablet)|iPhone|iPod|BlackBerry|Windows Phone|webOS|Opera Mini|IEMobile|Mobile|mobi/i;
-const TABLET_PATTERNS = /iPad|tablet|playbook|silk|Tablet/i;
+  /Android(?!.*Tablet)|iPhone|iPod|BlackBerry|Windows Phone|webOS|Opera Mini|IEMobile|Mobile|mobi|phone|mobile|android|ios|iphone|ipod|blackberry|fennec|minimo|symbian|psp|nintendo|playstation|hiptop|netfront|palm|brew|dolphin|blazer|bolt|gobrowser|iris|maemo|semc|skyfire|teashark|teleca|uzard|pocket|series60|series40|maui|windows ce|windows mobile|j2me|midp|cldc|palm|smartphone|iemobile/i;
+const TABLET_PATTERNS =
+  /iPad|tablet|playbook|silk|Tablet|Android.*(?=.*\b(?:tablet|tab)\b)/i;
 
 // Viewport breakpoints
 const VIEWPORT_BREAKPOINTS = {
@@ -60,29 +62,41 @@ export const useMobileDetection = (): MobileDetectionResult => {
 
     const userAgent = window.navigator.userAgent;
     const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
 
-    // PRIMARY: Mobile detection - prioritize mobile patterns OR small screen
-    if (
-      MOBILE_PATTERNS.test(userAgent) ||
-      screenWidth < VIEWPORT_BREAKPOINTS.small
-    ) {
+    // Test pattern matches
+    const mobilePatternMatch = MOBILE_PATTERNS.test(userAgent);
+    const tabletPatternMatch = TABLET_PATTERNS.test(userAgent);
+    const isSmallScreen = screenWidth < VIEWPORT_BREAKPOINTS.small;
+    const isMediumScreen =
+      screenWidth >= VIEWPORT_BREAKPOINTS.small &&
+      screenWidth <= VIEWPORT_BREAKPOINTS.medium;
+
+    // ENHANCED: Also consider aspect ratio for ultra-wide mobile devices
+    const aspectRatio = screenHeight / screenWidth;
+    const isPortraitMobile = aspectRatio > 1.4 && screenWidth <= 500; // Tall, narrow screen = likely mobile
+    const isMobileByDimensions = isSmallScreen || isPortraitMobile;
+
+    // PRIMARY: Mobile detection - prioritize mobile patterns OR mobile dimensions
+    if (mobilePatternMatch || isMobileByDimensions) {
       // Double-check it's not a tablet masquerading as mobile
-      if (!TABLET_PATTERNS.test(userAgent)) {
+      if (!tabletPatternMatch) {
         return "mobile";
+      } else {
+        // CRITICAL FIX: Mobile dimensions should override user agent for mobile detection
+        if (isMobileByDimensions) {
+          return "mobile";
+        }
       }
     }
 
     // SECONDARY: Tablet detection - check patterns AND medium screen size
-    if (
-      TABLET_PATTERNS.test(userAgent) ||
-      (screenWidth >= VIEWPORT_BREAKPOINTS.small &&
-        screenWidth <= VIEWPORT_BREAKPOINTS.medium)
-    ) {
+    if (tabletPatternMatch || isMediumScreen) {
       return "tablet";
     }
 
-    // FALLBACK: Small screen without mobile user agent = mobile device
-    if (screenWidth < VIEWPORT_BREAKPOINTS.small) {
+    // FALLBACK: Mobile dimensions without clear user agent = mobile device
+    if (isMobileByDimensions) {
       return "mobile";
     }
 
@@ -102,6 +116,17 @@ export const useMobileDetection = (): MobileDetectionResult => {
 
   const deviceType = detectDeviceType();
   const hasTouch = detectTouch();
+
+  // Essential logging for debugging mobile detection issues
+  console.log("🎯 Device detection:", {
+    type: deviceType,
+    viewingDistance: VIEWING_DISTANCES[deviceType] + '"',
+    adjustment: `+${CALIBRATION_ADJUSTMENTS[deviceType]}D`,
+    screen:
+      typeof window !== "undefined"
+        ? `${window.innerWidth}x${window.innerHeight}`
+        : "SSR",
+  });
 
   // Handle window resize
   useEffect(() => {
