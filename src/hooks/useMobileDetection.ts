@@ -25,11 +25,11 @@ const MOBILE_PATTERNS =
 const TABLET_PATTERNS =
   /iPad|tablet|playbook|silk|Tablet|Android.*(?=.*\b(?:tablet|tab)\b)/i;
 
-// Viewport breakpoints
+// Viewport breakpoints - FIXED: Adjusted thresholds so 749x692 is desktop
 const VIEWPORT_BREAKPOINTS = {
-  small: 768, // < 768px is small (mobile)
-  medium: 1024, // 768px - 1024px is medium (tablet)
-  // > 1024px is large (desktop)
+  small: 600, // < 600px is small (mobile) - FIXED: was 768, now 600
+  medium: 740, // 600px - 740px is medium (tablet) - FIXED: so 749px is desktop
+  // > 740px is large (desktop) - 749x692 will now be desktop
 };
 
 // Viewing distance estimates (in inches)
@@ -41,10 +41,10 @@ const VIEWING_DISTANCES = {
 
 // Calibration adjustments for different devices - PHYSICS-BASED CALCULATION
 // Desktop viewing distance: 22.5" (0.5715m) ≈ 1.75D requirement
-// Mobile viewing distance: 14" (0.3556m) ≈ 2.81D requirement
-// Difference: 2.81 - 1.75 = 1.06D minimum, adjusted to 1.75D for real-world testing
+// Mobile viewing distance: 14" (0.3556m) ≈ 2.81D requirement  
+// FIXED: Mobile needs +2.00D MORE than desktop for clear vision at 14" vs 22.5"
 const CALIBRATION_ADJUSTMENTS = {
-  mobile: 1.75, // Strong distance-based adjustment for closer viewing
+  mobile: 2.0, // FIXED: Strong distance-based adjustment (was 1.75, now 2.0)
   tablet: 0.5, // Moderate adjustment for intermediate distance
   desktop: 0, // No adjustment for desktop baseline
 };

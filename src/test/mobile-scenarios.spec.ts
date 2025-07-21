@@ -80,13 +80,13 @@ describe("Mobile Vision Correction Integration", () => {
       const { result: mobileResult } = renderHook(() => useMobileDetection());
 
       expect(mobileResult.current.deviceType).toBe("mobile");
-      expect(mobileResult.current.calibrationAdjustment).toBe(1.75);
+      expect(mobileResult.current.calibrationAdjustment).toBe(2.0); // FIXED
       expect(mobileResult.current.viewingDistance).toBe(14);
 
       const baseCalibration = 2.0;
       const adjustedCalibration =
         mobileResult.current.getAdjustedCalibration(baseCalibration);
-      expect(adjustedCalibration).toBe(3.75); // +1.75D adjustment for mobile
+      expect(adjustedCalibration).toBe(4.0); // FIXED: +2.0D adjustment for mobile
     });
   });
 

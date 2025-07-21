@@ -9,24 +9,24 @@ These rules ensure maintainability, safety, and developer velocity.
 
 ### 1 — Before Coding
 
-- **BP-1 (MUST)** Ask the user clarifying questions.
-- **BP-2 (SHOULD)** Draft and confirm an approach for complex work.  
-- **BP-3 (SHOULD)** If ≥ 2 approaches exist, list clear pros and cons.
+- **BP-1 (MUST)** Ask the user clarifying questions.
+- **BP-2 (SHOULD)** Draft and confirm an approach for complex work.  
+- **BP-3 (SHOULD)** If ≥ 2 approaches exist, list clear pros and cons.
 
 ---
 
 ### 2 — While Coding
 
-- **C-1 (MUST)** Follow TDD: scaffold stub -> write failing test -> implement.
-- **C-2 (MUST)** Name functions with existing domain vocabulary for consistency.  
-- **C-3 (SHOULD NOT)** Introduce classes when small testable functions suffice.  
+- **C-1 (MUST)** Follow TDD: scaffold stub -> write failing test -> implement.
+- **C-2 (MUST)** Name functions with existing domain vocabulary for consistency.  
+- **C-3 (SHOULD NOT)** Introduce classes when small testable functions suffice.  
 - **C-4 (SHOULD)** Prefer simple, composable, testable functions.
-- **C-5 (MUST)** Prefer branded `type`s for IDs
+- **C-5 (MUST)** Prefer branded `type`s for IDs
   ```ts
   type UserId = Brand<string, 'UserId'>   // ✅ Good
   type UserId = string                    // ❌ Bad
   ```  
-- **C-6 (MUST)** Use `import type { … }` for type-only imports.
+- **C-6 (MUST)** Use `import type { … }` for type-only imports.
 - **C-7 (SHOULD NOT)** Add comments except for critical caveats; rely on self‑explanatory code.
 - **C-8 (SHOULD)** Default to `type`; use `interface` only when more readable or interface merging is required. 
 - **C-9 (SHOULD NOT)** Extract a new function unless it will be reused elsewhere, is the only way to unit-test otherwise untestable logic, or drastically improves readability of an opaque block.
@@ -35,10 +35,10 @@ These rules ensure maintainability, safety, and developer velocity.
 
 ### 3 — Testing
 
-- **T-1 (MUST)** For a simple function, colocate unit tests in `*.spec.ts` in same directory as source file.
-- **T-2 (MUST)** For any API change, add/extend integration tests in `packages/api/test/*.spec.ts`.
-- **T-3 (MUST)** ALWAYS separate pure-logic unit tests from DB-touching integration tests.
-- **T-4 (SHOULD)** Prefer integration tests over heavy mocking.  
+- **T-1 (MUST)** For a simple function, colocate unit tests in `*.spec.ts` in same directory as source file.
+- **T-2 (MUST)** For any API change, add/extend integration tests in `packages/api/test/*.spec.ts`.
+- **T-3 (MUST)** ALWAYS separate pure-logic unit tests from DB-touching integration tests.
+- **T-4 (SHOULD)** Prefer integration tests over heavy mocking.  
 - **T-5 (SHOULD)** Unit-test complex algorithms thoroughly.
 - **T-6 (SHOULD)** Test the entire structure in one assertion if possible
   ```ts
@@ -50,74 +50,27 @@ These rules ensure maintainability, safety, and developer velocity.
 
 ---
 
-### 4 — Debugging Methodology
+### 4 — Database
 
-- **DBG-1 (MUST)** Follow systematic debugging protocol for all issue investigation.
-- **DBG-2 (MUST)** Use evidence-based approach: console logs prove/disprove assumptions.
-- **DBG-3 (SHOULD NOT)** Use shotgun debugging with multiple simultaneous fixes.
-- **DBG-4 (MUST)** Document architectural understanding before implementing fixes.
-- **DBG-5 (SHOULD)** Build minimal viable solutions before adding complexity.
-
-#### Systematic Debugging Protocol
-
-When investigating issues, always follow this evidence-based approach:
-
-**SYSTEMATIC DEBUGGING: [Issue Description]**
-
-**STEP 1: EVIDENCE GATHERING**
-- Add mandatory console logs to prove/disprove key assumptions
-- Document exact failure point with measurable data
-- No assumptions - only verifiable facts
-
-**STEP 2: ARCHITECTURAL REVIEW**
-- Document component relationships and data flow
-- Identify integration points and dependencies
-- Understand the system before fixing symptoms
-
-**STEP 3: MINIMAL VIABLE SOLUTION**
-- Create simplest possible working implementation
-- Verify foundation before adding complexity
-- Build up incrementally with validation at each step
-
-**DELIVERABLE:** Console logs showing exact rendering path and failure point
-
-#### Engineering Principles
-
-- **Debug with data, not assumptions**
-- **Build up from working foundations, not down from complex requirements**
-- **One failure point at a time - systematic variable elimination**
-- **Architectural understanding precedes implementation**
-- **Measurable success criteria for every debugging session**
-
-#### Deprecated Debugging Approaches
-❌ Shotgun debugging with multiple potential fixes  
-❌ Assumption-based "check if X works" instructions  
-❌ Reactive debugging without architectural context  
-❌ Complex implementations without proven foundations
+- **D-1 (MUST)** Type DB helpers as `KyselyDatabase | Transaction<Database>`, so it works for both transactions and DB instances.  
+- **D-2 (SHOULD)** Override incorrect generated types in `packages/shared/src/db-types.override.ts`. e.g. autogenerated types show incorrect BigInt value – so we override to `string` manually.
 
 ---
 
-### 5 — Database
+### 5 — Code Organization
 
-- **D-1 (MUST)** Type DB helpers as `KyselyDatabase | Transaction<Database>`, so it works for both transactions and DB instances.  
-- **D-2 (SHOULD)** Override incorrect generated types in `packages/shared/src/db-types.override.ts`. e.g. autogenerated types show incorrect BigInt value – so we override to `string` manually.
-
----
-
-### 6 — Code Organization
-
-- **O-1 (MUST)** Place code in `packages/shared` only if used by ≥ 2 packages.
+- **O-1 (MUST)** Place code in `packages/shared` only if used by ≥ 2 packages.
 
 ---
 
-### 7 — Tooling Gates
+### 6 — Tooling Gates
 
-- **G-1 (MUST)** `prettier --check` passes.  
-- **G-2 (MUST)** `turbo typecheck lint` passes.  
+- **G-1 (MUST)** `prettier --check` passes.  
+- **G-2 (MUST)** `turbo typecheck lint` passes.  
 
 ---
 
-### 8 - Git
+### 7 - Git
 
 - **GH-1 (MUST**) Use Conventional Commits format when writing commit messages: https://www.conventionalcommits.org/en/v1.0.0
 - **GH-2 (SHOULD NOT**) Refer to Claude or Anthropic in commit messages.
@@ -148,8 +101,8 @@ When evaluating whether a test you've implemented is good or not, use this check
 
 1. SHOULD parameterize inputs; never embed unexplained literals such as 42 or "foo" directly in the test.
 2. SHOULD NOT add a test unless it can fail for a real defect. Trivial asserts (e.g., expect(2).toBe(2)) are forbidden.
-3. SHOULD ensure the test description states exactly what the final expect verifies. If the wording and assert don't align, rename or rewrite.
-4. SHOULD compare results to independent, pre-computed expectations or to properties of the domain, never to the function's output re-used as the oracle.
+3. SHOULD ensure the test description states exactly what the final expect verifies. If the wording and assert don’t align, rename or rewrite.
+4. SHOULD compare results to independent, pre-computed expectations or to properties of the domain, never to the function’s output re-used as the oracle.
 5. SHOULD follow the same lint, type-safety, and style rules as prod code (prettier, ESLint, strict types).
 6. SHOULD express invariants or axioms (e.g., commutativity, idempotence, round-trip) rather than single hard-coded cases whenever practical. Use `fast-check` library e.g.
 ```

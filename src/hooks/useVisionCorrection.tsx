@@ -9,6 +9,7 @@ import { CanvasAnalyzer } from "../utils/canvas";
 import type { AnalysisResult } from "../utils/canvas/types";
 import { WebGLRenderer, WebGLSettings, WebGLProcessingResult, WebGLContextInfo } from "../utils/WebGLRenderer";
 import { SemanticMagnification, MagnificationSettings } from "../utils/SemanticMagnification";
+import { WEBGL_ENABLED } from "../config/features";
 
 export interface CalibrationData {
   readingVision: number; // 0.00D to +3.5D presbyopia correction
@@ -59,11 +60,12 @@ export interface UseVisionCorrectionReturn {
   analyzeElement: (element: HTMLElement) => Promise<void>;
   processElementWithCanvas: (element: HTMLElement) => Promise<void>;
 
-  // WebGL Integration
-  webglEnabled: boolean;
-  webglPerformance: WebGLProcessingResult['performanceMetrics'] | null;
-  toggleWebGL: () => void;
-  processElementWithWebGL: (element: HTMLElement) => Promise<WebGLProcessingResult>;
+  // WebGL Integration (conditional)
+  webglEnabled?: boolean;
+  webglPerformance?: WebGLProcessingResult['performanceMetrics'] | null;
+  toggleWebGL?: () => void;
+  processElementWithWebGL?: (element: HTMLElement) => Promise<WebGLProcessingResult>;
+  getWebGLContextInfo?: () => WebGLContextInfo;
 
   // Smart Magnification
   magnificationEnabled: boolean;
@@ -71,9 +73,6 @@ export interface UseVisionCorrectionReturn {
   toggleMagnification: () => void;
   setMagnificationLevel: (level: number) => void;
   applyMagnification: (container: HTMLElement) => void;
-
-  // WebGL Context Info
-  getWebGLContextInfo: () => WebGLContextInfo;
 }
 
 const DEFAULT_SETTINGS: VisionSettings = {
@@ -116,6 +115,30 @@ export const useVisionCorrection = (): UseVisionCorrectionReturn => {
 
   // Mobile detection
   const mobileDetection = useMobileDetection();
+
+  // CRITICAL FIX: Add WebGL state synchronization between hook instances
+  useEffect(() => {
+    const handleWebGLStateChange = (event: CustomEvent) => {
+      const newWebglEnabled = event.detail.webglEnabled;
+      console.log('🎯 WebGL state sync event received:', newWebglEnabled);
+      setWebglEnabled(newWebglEnabled);
+    };
+
+    // Listen for WebGL state changes from other hook instances
+    window.addEventListener('webgl-state-sync', handleWebGLStateChange as EventListener);
+    
+    return () => {
+      window.removeEventListener('webgl-state-sync', handleWebGLStateChange as EventListener);
+    };
+  }, []);
+
+  // CRITICAL FIX: Broadcast WebGL state changes to other hook instances
+  const broadcastWebGLState = useCallback((newState: boolean) => {
+    console.log('🎯 Broadcasting WebGL state change:', newState);
+    window.dispatchEvent(new CustomEvent('webgl-state-sync', {
+      detail: { webglEnabled: newState }
+    }));
+  }, []);
 
   // Calculate adjusted reading vision based on device type
   const adjustedReadingVision =
@@ -172,8 +195,13 @@ export const useVisionCorrection = (): UseVisionCorrectionReturn => {
     );
   }, [settings, processedReadingVision]);
 
-  // Update WebGL renderer when webglEnabled changes
+  // Update WebGL renderer when webglEnabled changes - only if feature is enabled
   useEffect(() => {
+    if (!WEBGL_ENABLED) {
+      console.log('🎯 WebGL feature disabled, skipping renderer updates');
+      return;
+    }
+    
     console.log('🎯 WebGL state changed, updating renderer:', webglEnabled);
     
     if (webglEnabled) {
@@ -210,7 +238,10 @@ export const useVisionCorrection = (): UseVisionCorrectionReturn => {
         startRealTimeProcessing(visionContainer as HTMLElement);
       }, 100);
     }
-  }, [webglEnabled, processedReadingVision, settings.contrastBoost, settings.edgeEnhancement, settings.isEnabled]);
+    
+    // CRITICAL FIX: Broadcast state change to other hook instances
+    broadcastWebGLState(webglEnabled);
+  }, [webglEnabled, processedReadingVision, settings.contrastBoost, settings.edgeEnhancement, settings.isEnabled, broadcastWebGLState]);
 
   // Initialize Canvas analyzer
   useEffect(() => {
@@ -428,11 +459,20 @@ export const useVisionCorrection = (): UseVisionCorrectionReturn => {
     setWebglEnabled(prev => {
       const newState = !prev;
       console.log('🎯 WebGL state changing:', prev, '→', newState);
+      
+      // CRITICAL FIX: Broadcast state change to other hook instances
+      
       return newState;
     });
   }, [webglEnabled]);
 
   const processElementWithWebGL = useCallback(async (element: HTMLElement): Promise<WebGLProcessingResult> => {
+    // Feature flag check - early return if WebGL disabled
+    if (!WEBGL_ENABLED) {
+      console.log('🎯 WebGL feature disabled, skipping WebGL processing');
+      throw new Error('WebGL processing disabled by feature flag');
+    }
+    
     console.log('🎯 processElementWithWebGL ENTRY', {
       element: element.tagName,
       rendererExists: !!webglRendererRef.current,
@@ -704,6 +744,26 @@ export const useVisionCorrection = (): UseVisionCorrectionReturn => {
     }
   }, []);
 
+  // CRITICAL: Restart processing when WebGL state changes
+  useEffect(() => {
+    console.log('🎯 WebGL state changed, restarting processing with new state:', webglEnabled);
+    
+    // CRITICAL: Restart processing with new webglEnabled state
+    const visionContainer = document.querySelector('.vision-processor-container');
+    if (visionContainer && settings.isEnabled) {
+      console.log('🎯 WebGL state changed, restarting processing with new state');
+      
+      // Stop current processing
+      stopRealTimeProcessing();
+      
+      // Restart with new webglEnabled value
+      setTimeout(() => {
+        console.log('🎯 Restarting processing with webglEnabled:', webglEnabled);
+        startRealTimeProcessing(visionContainer as HTMLElement);
+      }, 100);
+    }
+  }, [webglEnabled, settings.isEnabled, startRealTimeProcessing, stopRealTimeProcessing]);
+
   // Vision test function
   const runVisionTest = useCallback(async (): Promise<CalibrationData> => {
     return new Promise((resolve) => {
@@ -964,11 +1024,14 @@ export const useVisionCorrection = (): UseVisionCorrectionReturn => {
     analyzeElement,
     processElementWithCanvas,
 
-    // WebGL Integration
-    webglEnabled,
-    webglPerformance,
-    toggleWebGL,
-    processElementWithWebGL,
+    // WebGL Integration - only exposed if feature enabled
+    ...(WEBGL_ENABLED ? {
+      webglEnabled,
+      webglPerformance,
+      toggleWebGL,
+      processElementWithWebGL,
+      getWebGLContextInfo,
+    } : {}),
 
     // Smart Magnification
     magnificationEnabled,
@@ -976,9 +1039,6 @@ export const useVisionCorrection = (): UseVisionCorrectionReturn => {
     toggleMagnification,
     setMagnificationLevel: updateMagnificationLevel,
     applyMagnification,
-
-    // WebGL Context Info
-    getWebGLContextInfo,
   };
 };
 

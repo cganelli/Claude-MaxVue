@@ -3,16 +3,35 @@ import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import BottomNavigation from "../components/BottomNavigation";
 import Button from "../components/Button";
+import {
+  internalToUserScale,
+  userToInternalScale,
+  getUserScaleDescription,
+  calculateCalibrationValues,
+} from "../utils/calibrationMapping";
+import { useMobileDetection } from "../hooks/useMobileDetection";
 
 const VisionCalibration = () => {
-  // Get current calibration value from localStorage (default to 0 if not set)
-  const calibration = parseFloat(
+  const mobileDetection = useMobileDetection();
+  // Get current calibration value from localStorage (default to internal 0 if not set)
+  const internalCalibration = parseFloat(
     localStorage.getItem("calibrationValue") || "0",
   );
 
-  // Initialize slider with saved calibration value
-  const [selectedValue, setSelectedValue] = useState(calibration);
+  // Convert internal calibration to user-friendly scale for display
+  const userCalibration = internalToUserScale(internalCalibration);
+
+  // Initialize slider with user-friendly calibration value (0.00D to +3.50D)
+  const [userSelectedValue, setUserSelectedValue] = useState(userCalibration);
   const [isCalibrated, setIsCalibrated] = useState(false);
+
+  // Device-specific calibration: desktop gets +2.00D offset, mobile/tablet unchanged
+  let processedUserSelectedValue = userSelectedValue;
+  let desktopOffset = 0;
+  if (mobileDetection.deviceType === "desktop") {
+    processedUserSelectedValue = userSelectedValue + 2.00;
+    desktopOffset = 2.00;
+  }
 
   // Accurate Presbyopia Simulation - Distance-Based Blur
   // CRITICAL: Text should ONLY be clear at user's exact prescription
@@ -22,12 +41,12 @@ const VisionCalibration = () => {
   // User needs to find the slider position where text becomes clearest
   // We'll simulate different prescription strengths for testing
 
-  // Test scenario: Assume user actually needs +2.0D readers
-  const simulatedUserPrescription = 2.0; // This represents what user actually needs
+  // Test scenario: User has optimal vision at user scale +2.00D (common presbyopia)
+  const simulatedUserOptimal = 2.0; // User scale: +2.00D reading glasses prescription
 
-  // Calculate blur based on distance from their actual prescription need
+  // Calculate blur based on distance from their optimal prescription on user scale
   const distanceFromOptimal = Math.abs(
-    selectedValue - simulatedUserPrescription,
+    processedUserSelectedValue - simulatedUserOptimal,
   );
   const blurPerDiopter = 0.6; // How much blur per diopter of distance
   const minimumBlur = 0.05; // Tiny amount of blur even at optimal for realism
@@ -41,32 +60,39 @@ const VisionCalibration = () => {
   // ✅ FIXED: Remove fallback to 2.0 - use 0.0 if no calibration found
 
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = parseFloat(e.target.value);
-    setSelectedValue(newValue);
+    const newUserValue = parseFloat(e.target.value);
+    setUserSelectedValue(newUserValue);
   };
 
-  // ✅ FIXED: Calibration confirmation logic - saves the selected calibration and activates correction
+  // Calibration confirmation logic - converts user scale to internal scale for storage
   const handleConfirmCalibration = () => {
+    // Convert user scale to internal scale for backend calculations
+    let valueToSave = userSelectedValue;
+    if (mobileDetection.deviceType === "desktop") {
+      valueToSave = userSelectedValue + 2.00;
+    }
+    const internalValue = userToInternalScale(valueToSave);
+    
     console.log(
-      "🎯 VisionCalibration: Confirming calibration with selected value:",
-      selectedValue,
+      "🎯 VisionCalibration: Confirming calibration:",
+      { userScale: userSelectedValue, processedUserSelectedValue, desktopOffset, internalScale: internalValue, deviceType: mobileDetection.deviceType }
     );
 
-    // ✅ FIXED: Save calibrationValue = selectedValue (no clamping to +2.0D)
-    localStorage.setItem("calibrationValue", selectedValue.toString());
-
-    // ✅ FIXED: Add this line to explicitly set estimatedSphere to match selectedValue
-    localStorage.setItem("estimatedSphere", selectedValue.toString());
+    // Save internal scale value for calculations (maintains mobile adjustment logic)
+    localStorage.setItem("calibrationValue", internalValue.toString());
+    localStorage.setItem("estimatedSphere", internalValue.toString());
 
     // ✅ FIXED: Set visionCorrectionEnabled = true
     localStorage.setItem("visionCorrectionEnabled", "true");
     localStorage.setItem("hasConfirmedVision", "true");
 
     console.log("📝 VisionCalibration: Calibration saved:", {
-      calibrationValue: selectedValue,
-      estimatedSphere: selectedValue,
+      userScale: userSelectedValue,
+      internalScale: internalValue,
+      calibrationValue: internalValue,
+      estimatedSphere: internalValue,
       visionCorrectionEnabled: true,
-      note: "User will see 0px blur at this prescription strength",
+      note: "User sees user-friendly scale, internal calculations use mapped values",
     });
 
     // Show calibration success
@@ -102,11 +128,14 @@ const VisionCalibration = () => {
 
           {/* Instructions */}
           <div className="mb-8">
-            {calibration > 0 && !isCalibrated && (
+            {userCalibration > 0 && !isCalibrated && (
               <div className="bg-green-50 p-3 rounded-lg mb-4">
                 <p className="text-sm text-green-800">
                   <strong>Current Calibration:</strong> +
-                  {calibration.toFixed(2)}D
+                  {userCalibration.toFixed(2)}D
+                </p>
+                <p className="text-xs text-green-600 mt-1">
+                  {getUserScaleDescription(userCalibration)}
                 </p>
               </div>
             )}
@@ -153,18 +182,18 @@ const VisionCalibration = () => {
                 min="0"
                 max="3.5"
                 step="0.25"
-                value={selectedValue}
+                value={userSelectedValue}
                 onChange={handleSliderChange}
                 className="w-full h-4 rounded-full appearance-none cursor-pointer slider"
                 style={{ background: "#1D4262" }}
               />
               <div className="flex justify-between text-xs text-gray-500 mt-2">
-                <span>+0.00D</span>
+                <span>0.00D</span>
                 <span>+1.75D</span>
                 <span>+3.50D</span>
               </div>
               <div className="flex justify-between text-xs text-blue-600 mt-1">
-                <span>No readers</span>
+                <span>No glasses needed</span>
                 <span>Mild presbyopia</span>
                 <span>Strong presbyopia</span>
               </div>
@@ -224,7 +253,10 @@ const VisionCalibration = () => {
                     ✅ Calibration Saved!
                   </p>
                   <p className="text-lg font-semibold text-black mb-2">
-                    Your Calibration: +{selectedValue.toFixed(2)}D
+                    Your Calibration: +{userSelectedValue.toFixed(2)}D
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {getUserScaleDescription(userSelectedValue)}
                   </p>
                   <p className="text-sm text-gray-600 mt-2">
                     Redirecting to demo page...
@@ -239,14 +271,17 @@ const VisionCalibration = () => {
               ) : (
                 <>
                   <p className="text-lg font-semibold text-black mb-2">
-                    Testing: +{selectedValue.toFixed(2)} D
+                    Testing: +{userSelectedValue.toFixed(2)} D
+                  </p>
+                  <p className="text-sm text-blue-600 mb-2">
+                    {getUserScaleDescription(userSelectedValue)}
                   </p>
                   <p className="text-sm text-gray-600">
                     Eye Test Blur: {eyeTestBlur.toFixed(2)}px
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
                     Distance from optimal (+
-                    {simulatedUserPrescription.toFixed(2)}D):{" "}
+                    {simulatedUserOptimal.toFixed(2)}D):{" "}
                     {distanceFromOptimal.toFixed(2)}D
                   </p>
                   <div className="mt-3 p-3 bg-blue-50 rounded-lg">
@@ -280,7 +315,7 @@ const VisionCalibration = () => {
               fullWidth
               className="rounded-2xl"
             >
-              Set Calibration (+{selectedValue.toFixed(2)}D)
+              Set Calibration (+{userSelectedValue.toFixed(2)}D)
             </Button>
           </div>
 
@@ -288,12 +323,12 @@ const VisionCalibration = () => {
           {import.meta.env.DEV && (
             <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-xs text-yellow-800">
-                Debug: Previous Calibration: +{calibration.toFixed(2)}D |
-                Current Test: +{selectedValue.toFixed(2)}D | Simulation Blur:{" "}
+                Debug: User Scale: +{userCalibration.toFixed(2)}D (Internal: {internalCalibration >= 0 ? '+' : ''}{internalCalibration.toFixed(2)}D) |
+                Current Test: +{userSelectedValue.toFixed(2)}D | Simulation Blur:{" "}
                 {eyeTestBlur.toFixed(2)}px | Distance-based presbyopia
-                simulation (clearest at +{simulatedUserPrescription.toFixed(2)}
-                D) | Will Save: calibrationValue = {selectedValue.toString()},
-                estimatedSphere = {selectedValue.toString()},
+                simulation (clearest at +{simulatedUserOptimal.toFixed(2)}
+                D) | Will Save: calibrationValue = {userToInternalScale(userSelectedValue).toString()},
+                estimatedSphere = {userToInternalScale(userSelectedValue).toString()},
                 visionCorrectionEnabled = true
               </p>
             </div>

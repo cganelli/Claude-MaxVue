@@ -2,9 +2,20 @@ import React, { useState, useEffect, useRef } from "react";
 import { VisionProcessor } from "../components/VisionProcessor";
 import { useVisionCorrection } from "../hooks/useVisionCorrection";
 import { useMobileDetection } from "../hooks/useMobileDetection";
+import { CanvasAnalysisOverlay, CanvasAnalysisDebugPanel } from "../components/CanvasAnalysisOverlay";
 import WorkingCameraDemo from "../components/WorkingCameraDemo";
 import NativeAppDemo from "../components/NativeAppDemo";
+import WebGLDebugPanel from "../components/WebGLDebugPanel";
+import { WEBGL_ENABLED } from '../config/features';
 // Removed unused imports - using local components instead
+
+// SYSTEMATIC DEBUGGING: Verify imports
+console.log('🔍 ContentDemo: Import verification:', {
+  CanvasAnalysisOverlay: !!CanvasAnalysisOverlay,
+  CanvasAnalysisDebugPanel: !!CanvasAnalysisDebugPanel,
+  useVisionCorrection: !!useVisionCorrection,
+  VisionProcessor: !!VisionProcessor
+});
 
 // Sample content components for testing - using local versions to avoid conflicts
 const SampleImageLocal: React.FC = () => (
@@ -295,7 +306,7 @@ const PerformanceMonitorLocal: React.FC = () => {
 const ContentDemo: React.FC = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [calibrationValue, setCalibrationValue] = useState(0);
-  const [calibrationLoaded, setCalibrationLoaded] = useState(false);
+  // Remove unused calibrationLoaded state - not needed with dependency-based useEffect
 
   // CRITICAL FIX: Add loading ref to prevent multiple simultaneous loads
   const loadingRef = useRef(false);
@@ -303,18 +314,47 @@ const ContentDemo: React.FC = () => {
   // Use the vision correction hook to access current settings
   const visionHook = useVisionCorrection();
 
+  // Extract Canvas analysis state from vision hook
+  const {
+    canvasAnalysisEnabled,
+    canvasAnalysisResult,
+    toggleCanvasAnalysis,
+    analyzeElement,
+    processElementWithCanvas,
+    webglEnabled,
+    toggleWebGL,
+    webglPerformance,
+  } = visionHook;
+
+  // Add state for showing the WebGL debug panel
+  const [showWebGLDebug, setShowWebGLDebug] = useState(false);
+
+  // ARCHITECTURAL VALIDATION: Log Canvas state and prop flow
+  console.log('🏗️ ARCHITECTURE: ContentDemo Canvas state extracted from useVisionCorrection:', {
+    canvasAnalysisEnabled,
+    canvasAnalysisResult: canvasAnalysisResult ? 'Present' : 'null',
+    textRegionsCount: canvasAnalysisResult?.textRegions?.length || 0,
+    processingTime: canvasAnalysisResult?.processingTime || 'N/A',
+    toggleCanvasAnalysis: !!toggleCanvasAnalysis,
+    analyzeElement: !!analyzeElement,
+    processElementWithCanvas: !!processElementWithCanvas,
+    hookInstance: 'ContentDemo-useVisionCorrection'
+  });
+
   // Use mobile detection hook
   const mobileDetection = useMobileDetection();
 
-  // CRITICAL FIX: Single useEffect with proper dependencies to prevent infinite loop
+  // CRITICAL FIX: useEffect that responds to mobile detection changes
   useEffect(() => {
     // CRITICAL FIX: Prevent multiple simultaneous loads
-    if (loadingRef.current || calibrationLoaded) {
+    if (loadingRef.current) {
       return;
     }
 
     loadingRef.current = true;
-    console.log("🔍 ContentDemo: Loading calibration data (once)...");
+    console.log(
+      "🔍 ContentDemo: Loading calibration data (device detection changed)...",
+    );
 
     try {
       // Check all possible calibration keys
@@ -326,6 +366,8 @@ const ContentDemo: React.FC = () => {
         calibrationValue: savedCalibration,
         estimatedSphere: estimatedSphere,
         visionCorrectionEnabled: visionEnabled,
+        deviceType: mobileDetection.deviceType,
+        calibrationAdjustment: mobileDetection.calibrationAdjustment,
         allKeys: Object.keys(localStorage).filter(
           (k) => k.includes("calibr") || k.includes("vision"),
         ),
@@ -354,15 +396,33 @@ const ContentDemo: React.FC = () => {
         });
       }
 
-      // CRITICAL FIX: Mark calibration as loaded to prevent re-runs
-      setCalibrationLoaded(true);
+      // Calibration loading complete
     } catch (error) {
       console.error("❌ ContentDemo: Error loading calibration:", error);
     } finally {
       loadingRef.current = false;
     }
-  }, []); // CRITICAL FIX: Empty dependency array - only run once on mount
-  // Note: visionHook and calibrationLoaded deliberately excluded to prevent infinite loop
+  }, [mobileDetection, visionHook]); // CRITICAL FIX: Depend on mobile detection changes!
+
+  if (WEBGL_ENABLED) {
+    console.log("🔍 WebGL UI debug", {
+      webglEnabled,
+      webglPerformance,
+      toggleWebGL: typeof toggleWebGL,
+      toggleWebGLFunction: toggleWebGL,
+      showWebGLDebug,
+      visionHook: visionHook // show full hook data
+    });
+  }
+
+  if (WEBGL_ENABLED) {
+    console.log("🔍 TOGGLE FUNCTION VERIFICATION:", {
+      toggleWebGLExists: !!toggleWebGL,
+      toggleWebGLType: typeof toggleWebGL,
+      toggleWebGLString: toggleWebGL?.toString().substring(0, 50) + "...",
+      webglEnabled,
+    });
+  }
 
   const tabs = [
     { id: "overview", name: "Overview", icon: "👁️" },
@@ -375,8 +435,16 @@ const ContentDemo: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
+      {(() => {
+        console.log('📍 ContentDemo: PAGE CONTAINER rendered');
+        return null;
+      })()}
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-8">
+          {(() => {
+            console.log('📍 ContentDemo: HEADER SECTION rendered');
+            return null;
+          })()}
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             MaxVue Vision Correction Demo
           </h1>
@@ -412,12 +480,94 @@ const ContentDemo: React.FC = () => {
         </div>
 
         {/* Main Vision Processor Wrapper */}
+        {(() => {
+          console.log('📍 ContentDemo: VISION PROCESSOR WRAPPER about to render');
+          return null;
+        })()}
+        {/* Vision Controls Panel */}
+        <div className="mb-6 bg-white rounded-lg shadow-md p-6 flex flex-col gap-4">
+          <div className="flex items-center gap-4">
+            <span className="font-semibold text-gray-900">Vision Correction:</span>
+            <span className="badge badge-success">Enabled</span>
+          </div>
+          {/* Reading Vision Slider and other controls here */}
+          <div className="flex items-center gap-4 mt-2">
+            <span className="font-medium text-gray-700">Canvas Analysis:</span>
+            <input
+              type="checkbox"
+              className="toggle toggle-primary"
+              checked={canvasAnalysisEnabled}
+              onChange={toggleCanvasAnalysis}
+            />
+          </div>
+          {WEBGL_ENABLED && (
+            <div className="flex items-center gap-4 mt-2">
+              <span className="font-medium text-gray-700">WebGL Acceleration:</span>
+              <span className="text-xs text-blue-600">(Click to test)</span>
+              <input
+                type="checkbox"
+                className="toggle toggle-accent"
+                checked={webglEnabled}
+                onChange={() => {
+                  console.log('🚨 TOGGLE ELEMENT CLICKED: WebGL toggle clicked');
+                  console.log('🚨 Current webglEnabled state:', webglEnabled);
+                  console.log('🚨 About to call toggleWebGL function');
+                  console.log('🚨 TOGGLE DEBUG: toggleWebGL function type:', typeof toggleWebGL);
+                  console.log('🚨 TOGGLE DEBUG: toggleWebGL function:', toggleWebGL);
+                  toggleWebGL();
+                  console.log('🚨 toggleWebGL function called');
+                }}
+                onClick={() => {
+                  console.log('🚨 TOGGLE ONCLICK: WebGL toggle clicked (onClick event)');
+                }}
+                data-testid="webgl-toggle"
+                aria-label="WebGL Acceleration Toggle"
+                id="webgl-acceleration-toggle"
+                style={{ cursor: 'pointer' }}
+              />
+              <span className="text-xs text-gray-500 ml-2">
+                Performance: {webglPerformance ? `${Math.round(webglPerformance.fps)} fps, ${Math.round(webglPerformance.processingTime)}ms` : 'N/A'}
+              </span>
+              <span className={`badge ml-2 ${webglPerformance && webglPerformance.fallbackTriggered ? 'badge-warning' : 'badge-info'}`}>{webglPerformance && webglPerformance.fallbackTriggered ? 'CSS Fallback' : 'WebGL Active'}</span>
+              <button
+                className="btn btn-xs btn-outline btn-info ml-4"
+                onClick={() => setShowWebGLDebug((prev) => !prev)}
+              >
+                {showWebGLDebug ? 'Hide' : 'Show'} WebGL Debug
+              </button>
+              <button
+                className="btn btn-xs btn-outline btn-warning ml-2"
+                onClick={() => {
+                  console.log('🧪 TEST BUTTON: Manually calling toggleWebGL');
+                  toggleWebGL();
+                }}
+              >
+                Test Toggle
+              </button>
+            </div>
+          )}
+          {/* Advanced Settings and other controls here */}
+          {WEBGL_ENABLED && showWebGLDebug && (
+            <div className="mt-4">
+              {/* WebGLDebugPanel will be rendered here */}
+              <WebGLDebugPanel 
+                webglPerformance={webglPerformance} 
+                getWebGLContextInfo={visionHook.getWebGLContextInfo} 
+                processElementWithWebGL={visionHook.processElementWithWebGL}
+              />
+            </div>
+          )}
+        </div>
         <VisionProcessor
           className="w-full"
           autoProcess={true}
           showControls={true}
         >
           {/* Tab Navigation */}
+          {(() => {
+            console.log('📍 ContentDemo: TAB NAVIGATION rendered');
+            return null;
+          })()}
           <div className="flex flex-wrap justify-center mb-8">
             {tabs.map((tab) => (
               <button
@@ -436,9 +586,17 @@ const ContentDemo: React.FC = () => {
           </div>
 
           {/* Content Area */}
+          {(() => {
+            console.log('📍 ContentDemo: CONTENT AREA rendered');
+            return null;
+          })()}
           <div className="bg-white rounded-xl shadow-lg p-8">
             {activeTab === "overview" && (
               <div>
+                {(() => {
+                  console.log('📍 ContentDemo: SYSTEM OVERVIEW TAB rendered');
+                  return null;
+                })()}
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">
                   System Overview
                 </h2>
@@ -527,6 +685,10 @@ const ContentDemo: React.FC = () => {
           </div>
 
           {/* Footer Info */}
+          {(() => {
+            console.log('📍 ContentDemo: FOOTER INFO rendered');
+            return null;
+          })()}
           <div className="mt-8 text-center text-gray-600">
             <p>
               Adjust the vision correction settings above to optimize your
@@ -534,6 +696,36 @@ const ContentDemo: React.FC = () => {
               visual content on this page.
             </p>
           </div>
+
+          {/* Canvas Analysis Visual Overlay */}
+          {(() => {
+            console.log('📍 ContentDemo: CANVAS ANALYSIS OVERLAY SECTION about to render');
+            return null;
+          })()}
+          {canvasAnalysisEnabled && canvasAnalysisResult && (() => {
+            console.log('🔍 ContentDemo: About to render CanvasAnalysisOverlay');
+            console.log('🔍 ContentDemo: Overlay conditions met:', {
+              canvasAnalysisEnabled,
+              canvasAnalysisResult: !!canvasAnalysisResult,
+              bothConditionsTrue: canvasAnalysisEnabled && canvasAnalysisResult
+            });
+            const targetElement = document.querySelector('.vision-processor-container') as HTMLElement;
+            console.log('🔍 ContentDemo: Target element found:', !!targetElement);
+            console.log('🔍 ContentDemo: CanvasAnalysisOverlay props:', {
+              analysisResult: !!canvasAnalysisResult,
+              targetElement: !!targetElement,
+              enabled: true,
+              className: 'canvas-analysis-overlay'
+            });
+            return (
+            <CanvasAnalysisOverlay
+              analysisResult={canvasAnalysisResult}
+              targetElement={targetElement}
+              enabled={true}
+              className="canvas-analysis-overlay"
+            />
+            );
+          })()}
         </VisionProcessor>
       </div>
     </div>

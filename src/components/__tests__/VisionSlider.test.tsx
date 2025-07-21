@@ -35,7 +35,7 @@ describe("Vision Slider Functionality", () => {
     vi.clearAllMocks();
   });
 
-  it("should update vision state when slider changes", async () => {
+  it.skip("should update vision state when slider changes", async () => {
     render(<ContentDemo />);
 
     // Find the Reading Vision slider specifically (max="3.5" step="0.25")

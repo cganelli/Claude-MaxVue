@@ -53,14 +53,20 @@ export class VisionCorrectionEngine {
     }
 
     // Set canvas size to match source
-    this.canvas.width =
-      source instanceof HTMLCanvasElement
-        ? source.width
-        : source.videoWidth || source.naturalWidth || source.width;
-    this.canvas.height =
-      source instanceof HTMLCanvasElement
-        ? source.height
-        : source.videoHeight || source.naturalHeight || source.height;
+    if (source instanceof HTMLCanvasElement) {
+      this.canvas.width = source.width;
+      this.canvas.height = source.height;
+    } else if (source instanceof HTMLVideoElement) {
+      this.canvas.width = source.videoWidth;
+      this.canvas.height = source.videoHeight;
+    } else if (source instanceof HTMLImageElement) {
+      this.canvas.width = source.naturalWidth;
+      this.canvas.height = source.naturalHeight;
+    } else {
+      // fallback for unknown types
+      this.canvas.width = (source as any).width || 0;
+      this.canvas.height = (source as any).height || 0;
+    }
 
     // Get calibration value from localStorage
     const calibrationValue = parseFloat(
@@ -82,6 +88,15 @@ export class VisionCorrectionEngine {
         ? minimumBlur
         : distanceFromOptimal * blurPerDiopter;
 
+    // DEBUG: Log vision processing scale
+    console.log("🎯 Vision processing", {
+      adjustedReadingVision: currentReadingVision,
+      calibrationValue,
+      distanceFromOptimal,
+      imageBlur,
+      totalOffset: "4.25D (3.5 + 0.75)"
+    });
+
     // Apply distance-based blur using canvas filter
     this.ctx.filter = `blur(${imageBlur.toFixed(2)}px)`;
 
@@ -95,6 +110,12 @@ export class VisionCorrectionEngine {
    * Process DOM elements (images, videos) in place
    */
   public processElement(element: HTMLElement): void {
+    console.log("🎯 VisionCorrectionEngine.processElement called", {
+      isEnabled: this.settings.isEnabled,
+      element: element.tagName,
+      readingVision: this.settings.readingVision
+    });
+    
     if (!this.settings.isEnabled) return;
 
     // Check for image elements (including test mocks with img tagName)
@@ -470,30 +491,17 @@ export class VisionCorrectionEngine {
    * CRITICAL FIX: Prevents infinite loop by tracking processing state
    */
   private processImageElement(img: HTMLImageElement): void {
-    // CRITICAL FIX: Prevent infinite loop by checking if already processed/processing
-    if (
-      img.hasAttribute("data-vision-processed") ||
-      img.hasAttribute("data-vision-processing")
-    ) {
-      return;
-    }
-
-    // Mark as being processed to prevent concurrent processing
-    img.setAttribute("data-vision-processing", "true");
-
-    try {
-      // CRITICAL FIX: Use CSS-only processing for ALL images to prevent display issues
-      // Canvas processing was causing images to disappear or not display properly
+    console.log("🎯 VisionCorrectionEngine.processImageElement", {
+      readingVision: this.settings.readingVision,
+      calibrationValue: parseFloat(localStorage.getItem("calibrationValue") || "0"),
+      distanceFromOptimal: Math.abs(this.settings.readingVision - parseFloat(localStorage.getItem("calibrationValue") || "0")),
+      imageBlur: Math.abs(this.settings.readingVision - parseFloat(localStorage.getItem("calibrationValue") || "0")) * 0.6
+    });
+    
+    if (img.crossOrigin && img.crossOrigin !== "anonymous") {
+      this.processImageWithCORS(img);
+    } else {
       this.processImageWithCSS(img);
-
-      // Mark as fully processed
-      img.removeAttribute("data-vision-processing");
-      img.setAttribute("data-vision-processed", "true");
-    } catch (error) {
-      // Clean up processing state on error
-      img.removeAttribute("data-vision-processing");
-      img.setAttribute("data-vision-error", "true");
-      console.error("Image processing failed:", error);
     }
   }
 
@@ -565,6 +573,14 @@ export class VisionCorrectionEngine {
         ? minimumBlur
         : distanceFromOptimal * blurPerDiopter;
 
+    // DEBUG: Log vision processing scale
+    console.log("🎯 Vision processing", {
+      adjustedReadingVision: currentReadingVision,
+      calibrationValue,
+      distanceFromOptimal,
+      imageBlur
+    });
+
     // Apply CSS filters for vision correction with smooth transitions
     const contrast = 1 + this.settings.contrastBoost / 100;
     const brightness = 1 + this.settings.edgeEnhancement / 200; // Subtle brightness for edge enhancement
@@ -584,14 +600,20 @@ export class VisionCorrectionEngine {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d")!;
 
-    canvas.width =
-      source instanceof HTMLCanvasElement
-        ? source.width
-        : source.videoWidth || source.naturalWidth || source.width;
-    canvas.height =
-      source instanceof HTMLCanvasElement
-        ? source.height
-        : source.videoHeight || source.naturalHeight || source.height;
+    if (source instanceof HTMLCanvasElement) {
+      canvas.width = source.width;
+      canvas.height = source.height;
+    } else if (source instanceof HTMLVideoElement) {
+      canvas.width = source.videoWidth;
+      canvas.height = source.videoHeight;
+    } else if (source instanceof HTMLImageElement) {
+      canvas.width = source.naturalWidth;
+      canvas.height = source.naturalHeight;
+    } else {
+      // fallback for unknown types
+      canvas.width = (source as any).width || 0;
+      canvas.height = (source as any).height || 0;
+    }
 
     ctx.drawImage(source, 0, 0);
     return canvas;

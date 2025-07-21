@@ -3,6 +3,7 @@ import { useVisionCorrection } from "../hooks/useVisionCorrection";
 import { cacheManager } from "../utils/cacheUtils";
 import { internalToUserScale, userToInternalScale } from "../utils/calibrationMapping";
 import { CanvasAnalysisDebugPanel } from "./CanvasAnalysisOverlay";
+import { WEBGL_ENABLED } from '../config/features';
 
 /**
  * VisionProcessor Component - ARCHITECTURE VERIFIED
