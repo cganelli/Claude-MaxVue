@@ -22,6 +22,133 @@ export interface ProcessingOptions {
   realTimeProcessing: boolean;
 }
 
+/**
+ * EnhancedCSSConfig defines the parameters for each CSS filter configuration used in presbyopia correction testing.
+ * Location: src/utils/VisionCorrectionEngine.ts
+ * Purpose: To allow systematic, programmatic application of CSS filter variations for Layer 1 optimization.
+ */
+export interface EnhancedCSSConfig {
+  contrast: number;
+  brightness: number;
+  dropShadowRadius: number;
+  dropShadowOpacity: number;
+  textShadowRadius: number;
+  textShadowOpacity: number;
+  fontSmoothing: boolean;
+  textRendering: boolean;
+}
+
+/**
+ * EnhancedCSSProcessor applies enhanced CSS filter configurations to DOM elements for presbyopia correction testing.
+ * - Use applyEnhancedCSS to apply a configuration by index.
+ * - Use getCurrentConfig and getTotalConfigurations for UI integration.
+ * Location: src/utils/VisionCorrectionEngine.ts
+ */
+export class EnhancedCSSProcessor {
+  private testConfigurations: EnhancedCSSConfig[] = [
+    {
+      contrast: 1.5,
+      brightness: 1.1,
+      dropShadowRadius: 0.3,
+      dropShadowOpacity: 0.5,
+      textShadowRadius: 0,
+      textShadowOpacity: 0,
+      fontSmoothing: false,
+      textRendering: false
+    },
+    {
+      contrast: 1.6,
+      brightness: 1.12,
+      dropShadowRadius: 0.4,
+      dropShadowOpacity: 0.6,
+      textShadowRadius: 0.2,
+      textShadowOpacity: 0.7,
+      fontSmoothing: true,
+      textRendering: true
+    },
+    {
+      contrast: 1.7,
+      brightness: 1.15,
+      dropShadowRadius: 0.5,
+      dropShadowOpacity: 0.7,
+      textShadowRadius: 0.3,
+      textShadowOpacity: 0.8,
+      fontSmoothing: true,
+      textRendering: true
+    },
+    {
+      contrast: 1.8,
+      brightness: 1.18,
+      dropShadowRadius: 0.6,
+      dropShadowOpacity: 0.8,
+      textShadowRadius: 0.4,
+      textShadowOpacity: 0.9,
+      fontSmoothing: true,
+      textRendering: true
+    },
+    {
+      contrast: 1.9,
+      brightness: 1.2,
+      dropShadowRadius: 0.7,
+      dropShadowOpacity: 0.9,
+      textShadowRadius: 0.5,
+      textShadowOpacity: 1.0,
+      fontSmoothing: true,
+      textRendering: true
+    }
+  ];
+
+  /**
+   * Applies the specified enhanced CSS configuration to a DOM element.
+   * @param element - The target HTMLElement.
+   * @param configIndex - Index of the configuration to apply.
+   */
+  applyEnhancedCSS(element: HTMLElement, configIndex: number): void {
+    const config = this.testConfigurations[configIndex];
+    // Build filter string
+    const filterParts = [
+      `contrast(${config.contrast})`,
+      `brightness(${config.brightness})`,
+      `drop-shadow(0 0 ${config.dropShadowRadius}px rgba(0,0,0,${config.dropShadowOpacity}))`
+    ];
+    element.style.filter = filterParts.join(' ');
+    // Apply text shadow if configured
+    if (config.textShadowRadius > 0) {
+      element.style.textShadow = `0 0 ${config.textShadowRadius}px rgba(0,0,0,${config.textShadowOpacity})`;
+    } else {
+      element.style.textShadow = '';
+    }
+    // Apply font smoothing
+    if (config.fontSmoothing) {
+      (element.style as any).webkitFontSmoothing = 'antialiased';
+      (element.style as any).mozOsxFontSmoothing = 'grayscale';
+    } else {
+      (element.style as any).webkitFontSmoothing = '';
+      (element.style as any).mozOsxFontSmoothing = '';
+    }
+    // Apply text rendering optimization
+    if (config.textRendering) {
+      element.style.textRendering = 'optimizeLegibility';
+    } else {
+      element.style.textRendering = '';
+    }
+  }
+
+  /**
+   * Returns the configuration object for the given index.
+   */
+  getCurrentConfig(configIndex: number): EnhancedCSSConfig {
+    return this.testConfigurations[configIndex];
+  }
+
+  /**
+   * Returns the total number of configurations available.
+   */
+  getTotalConfigurations(): number {
+    return this.testConfigurations.length;
+  }
+}
+
 export class VisionCorrectionEngine {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;

@@ -7,6 +7,9 @@ import WorkingCameraDemo from "../components/WorkingCameraDemo";
 import NativeAppDemo from "../components/NativeAppDemo";
 import WebGLDebugPanel from "../components/WebGLDebugPanel";
 import { WEBGL_ENABLED } from '../config/features';
+import { EnhancedCSSTestingPanel } from '../components/EnhancedCSSTestingPanel';
+import { AdvancedProcessingPanel } from '../components/AdvancedProcessingPanel';
+import { WeekOneTest } from '../components/WeekOneTest';
 // Removed unused imports - using local components instead
 
 // SYSTEMATIC DEBUGGING: Verify imports
@@ -558,6 +561,10 @@ const ContentDemo: React.FC = () => {
             </div>
           )}
         </div>
+        {/* Week 1 Foundation Testing */}
+        <section className="mb-8">
+          <WeekOneTest />
+        </section>
         <VisionProcessor
           className="w-full"
           autoProcess={true}
@@ -727,6 +734,14 @@ const ContentDemo: React.FC = () => {
             );
           })()}
         </VisionProcessor>
+        {/* Layer 1: Enhanced CSS Testing Panel for presbyopia correction */}
+        <div className="enhanced-css-testing">
+          <EnhancedCSSTestingPanel />
+        </div>
+        {/* Layer 2: Advanced Processing Panel for advanced vision correction features */}
+        <div className="advanced-processing-section mt-8">
+          <AdvancedProcessingPanel />
+        </div>
       </div>
     </div>
   );

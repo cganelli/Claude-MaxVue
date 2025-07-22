@@ -10,6 +10,12 @@ import type { AnalysisResult } from "../utils/canvas/types";
 import { WebGLRenderer, WebGLSettings, WebGLProcessingResult, WebGLContextInfo } from "../utils/WebGLRenderer";
 import { SemanticMagnification, MagnificationSettings } from "../utils/SemanticMagnification";
 import { WEBGL_ENABLED } from "../config/features";
+import { 
+  applyWeekOneFoundation, 
+  removeWeekOneFoundation, 
+  isWeekOneFoundationActive, 
+  getWeekOneFoundationStatus 
+} from '../utils/WeekOneFoundation';
 
 export interface CalibrationData {
   readingVision: number; // 0.00D to +3.5D presbyopia correction
@@ -73,6 +79,19 @@ export interface UseVisionCorrectionReturn {
   toggleMagnification: () => void;
   setMagnificationLevel: (level: number) => void;
   applyMagnification: (container: HTMLElement) => void;
+
+  // Week 1 Minimal Foundation
+  applyMinimalFoundation: () => void;
+  removeMinimalFoundation: () => void;
+  toggleMinimalFoundation: () => void;
+  getFoundationStatus: () => {
+    active: boolean;
+    textEnhanced: number;
+    imagesPreserved: number;
+    totalProcessed: number;
+    effectiveness: string;
+  };
+  isFoundationActive: () => boolean;
 }
 
 const DEFAULT_SETTINGS: VisionSettings = {
@@ -1039,6 +1058,36 @@ export const useVisionCorrection = (): UseVisionCorrectionReturn => {
     toggleMagnification,
     setMagnificationLevel: updateMagnificationLevel,
     applyMagnification,
+
+    // Week 1 Minimal Foundation
+    applyMinimalFoundation: useCallback(() => {
+      try {
+        applyWeekOneFoundation();
+        console.log('✅ Minimal foundation applied via hook');
+      } catch (error) {
+        console.error('❌ Error applying minimal foundation:', error);
+      }
+    }, []),
+    
+    removeMinimalFoundation: useCallback(() => {
+      try {
+        removeWeekOneFoundation();
+        console.log('✅ Minimal foundation removed via hook');
+      } catch (error) {
+        console.error('❌ Error removing minimal foundation:', error);
+      }
+    }, []),
+    
+    toggleMinimalFoundation: useCallback(() => {
+      if (isWeekOneFoundationActive()) {
+        removeWeekOneFoundation();
+      } else {
+        applyWeekOneFoundation();
+      }
+    }, []),
+    
+    getFoundationStatus: getWeekOneFoundationStatus,
+    isFoundationActive: isWeekOneFoundationActive,
   };
 };
 

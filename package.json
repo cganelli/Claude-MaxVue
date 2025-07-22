@@ -10,7 +10,12 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "test:enhanced-css": "vitest run src/test/EnhancedCSS.test.ts",
+    "test:coverage": "vitest run --coverage",
+    "test:advanced": "vitest run src/test/AdvancedProcessing.test.ts",
+    "test:layer3": "vitest run src/test/AdvancedProcessing.test.ts",
+    "build:production": "npm run test:advanced && npm run build"
   },
   "dependencies": {
     "@supabase/ssr": "^0.1.0",

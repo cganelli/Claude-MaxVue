@@ -1,0 +1,42 @@
+/*
+  Enhanced CSS Filter Test Variations for Presbyopia Correction
+  Location: src/styles/presbyopia-enhanced.css
+  Purpose: Systematic testing of CSS filter parameters to maximize baseline correction effectiveness.
+*/
+
+.presbyopia-baseline {
+  /* Current working baseline - 3.0/10 */
+  filter: contrast(1.5) brightness(1.1) drop-shadow(0 0 0.3px rgba(0,0,0,0.5));
+}
+
+.presbyopia-enhanced-v1 {
+  /* Conservative enhancement */
+  filter: contrast(1.6) brightness(1.12) drop-shadow(0 0 0.4px rgba(0,0,0,0.6));
+  text-shadow: 0 0 0.2px rgba(0,0,0,0.7);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.presbyopia-enhanced-v2 {
+  /* Moderate enhancement */
+  filter: contrast(1.7) brightness(1.15) drop-shadow(0 0 0.5px rgba(0,0,0,0.7));
+  text-shadow: 0 0 0.3px rgba(0,0,0,0.8);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.presbyopia-enhanced-v3 {
+  /* Aggressive enhancement */
+  filter: contrast(1.8) brightness(1.18) drop-shadow(0 0 0.6px rgba(0,0,0,0.8));
+  text-shadow: 0 0 0.4px rgba(0,0,0,0.9);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.presbyopia-enhanced-v4 {
+  /* Maximum enhancement before artifacts */
+  filter: contrast(1.9) brightness(1.2) drop-shadow(0 0 0.7px rgba(0,0,0,0.9));
+  text-shadow: 0 0 0.5px rgba(0,0,0,1.0);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+} 
