@@ -10,6 +10,52 @@ import { WEBGL_ENABLED } from '../config/features';
 import { EnhancedCSSTestingPanel } from '../components/EnhancedCSSTestingPanel';
 import { AdvancedProcessingPanel } from '../components/AdvancedProcessingPanel';
 import { WeekOneTest } from '../components/WeekOneTest';
+
+// Progressive Enhancement Test Component
+const ProgressiveEnhancementTest: React.FC = () => {
+  const { triggerProcessing } = useVisionCorrection();
+  const [applied, setApplied] = useState(false);
+
+  const handleApplyEnhancements = () => {
+    triggerProcessing();
+    setApplied(true);
+    console.log('🎯 Progressive enhancement system activated');
+  };
+
+  return (
+    <section className="enhancement-test-section" style={{ margin: '20px 0', padding: '20px', border: '2px solid #28a745', borderRadius: '8px', backgroundColor: '#f8fff8' }}>
+      <h3>🎯 Progressive Enhancement System (Target: 4.4/10)</h3>
+      <p><strong>Goal:</strong> Apply all presbyopia enhancements progressively</p>
+      
+      <button 
+        onClick={handleApplyEnhancements}
+        style={{
+          padding: '12px 24px',
+          backgroundColor: applied ? '#28a745' : '#007bff',
+          color: 'white',
+          border: 'none',
+          borderRadius: '5px',
+          cursor: 'pointer',
+          fontSize: '16px',
+          fontWeight: 'bold'
+        }}
+      >
+        {applied ? '✅ Enhancements Applied' : '🎯 Apply All Presbyopia Enhancements'}
+      </button>
+
+      <div style={{ marginTop: '15px', fontSize: '14px', color: '#666' }}>
+        <p><strong>Enhancement Stack:</strong></p>
+        <ul>
+          <li>✅ Week 1 Foundation (3.3/10) - Base text sharpening</li>
+          <li>🎯 + Focal Cues (+0.3) - Subtle depth and parallax</li>
+          <li>🎯 + Content-Aware (+0.2) - Enhanced small text/numbers</li>
+          <li>🎯 + Typography (+0.2) - Presbyopia-friendly spacing</li>
+        </ul>
+        <p><strong>Target Total: 4.0/10 effectiveness</strong></p>
+      </div>
+    </section>
+  );
+};
 // Removed unused imports - using local components instead
 
 // SYSTEMATIC DEBUGGING: Verify imports
@@ -741,6 +787,10 @@ const ContentDemo: React.FC = () => {
         {/* Layer 2: Advanced Processing Panel for advanced vision correction features */}
         <div className="advanced-processing-section mt-8">
           <AdvancedProcessingPanel />
+        </div>
+        {/* Layer 3: Progressive Enhancement Test for comprehensive presbyopia assistance */}
+        <div className="progressive-enhancement-section mt-8">
+          <ProgressiveEnhancementTest />
         </div>
       </div>
     </div>
