@@ -26,6 +26,9 @@ import LandingPage from "./pages/LandingPage";
 import FAQPage from "./pages/FAQPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import TermsPage from "./pages/TermsPage";
+import { CameraAccommodationTest } from "./components/CameraAccommodationTest";
+import { CameraReadinessTest } from "./components/CameraReadinessTest";
+import { CameraAccommodationSystem } from "./components/CameraAccommodationSystem";
 import { supabase } from "./lib/supabase";
 
 const LoadingSpinner = () => (
@@ -149,6 +152,9 @@ function AppContent() {
           <Route path="/homepage" element={<Homepage />} />
           <Route path="/content-demo" element={<ContentDemo />} />
           <Route path="/demo" element={<ContentDemo />} />
+          <Route path="/camera-test" element={<CameraAccommodationTest />} />
+          <Route path="/camera-readiness" element={<CameraReadinessTest />} />
+          <Route path="/camera-system" element={<CameraAccommodationSystem />} />
           <Route path="/new-login" element={<NewLogin />} />
           <Route path="*" element={<Navigate to="/welcome-dev" replace />} />
         </Routes>
@@ -199,6 +205,9 @@ function AppContent() {
           <Route path="/homepage" element={<Homepage />} />
           <Route path="/content-demo" element={<ContentDemo />} />
           <Route path="/demo" element={<ContentDemo />} />
+          <Route path="/camera-test" element={<CameraAccommodationTest />} />
+          <Route path="/camera-readiness" element={<CameraReadinessTest />} />
+          <Route path="/camera-system" element={<CameraAccommodationSystem />} />
           <Route path="/new-login" element={<NewLogin />} />
           <Route path="/faq" element={<FAQPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
@@ -223,6 +232,9 @@ function AppContent() {
         <Route path="/vision-calibration" element={<VisionCalibration />} />
         <Route path="/content-demo" element={<ContentDemo />} />
         <Route path="/demo" element={<ContentDemo />} />
+        <Route path="/camera-test" element={<CameraAccommodationTest />} />
+        <Route path="/camera-readiness" element={<CameraReadinessTest />} />
+        <Route path="/camera-system" element={<CameraAccommodationSystem />} />
         <Route path="/homepage" element={<Homepage />} />
         <Route path="/faq" element={<FAQPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />

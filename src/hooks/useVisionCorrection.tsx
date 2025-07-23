@@ -14,7 +14,10 @@ import {
   applyWeekOneFoundation, 
   removeWeekOneFoundation, 
   isWeekOneFoundationActive, 
-  getWeekOneFoundationStatus 
+  getWeekOneFoundationStatus,
+  applyMaximumPresbyopiaFoundation,
+  removeMaximumPresbyopiaFoundation,
+  applyMaximumPresbyopiaEnhancement
 } from '../utils/WeekOneFoundation';
 
 export interface CalibrationData {
@@ -92,6 +95,30 @@ export interface UseVisionCorrectionReturn {
     effectiveness: string;
   };
   isFoundationActive: () => boolean;
+  
+  // Maximum Presbyopia Enhancement
+  applyMaximumFoundation: () => void;
+  removeMaximumFoundation: () => void;
+  toggleMaximumFoundation: () => void;
+  applyMaximumEnhancement: (element: HTMLElement) => void;
+  
+  // Simple Focal Cues
+  addSimpleFocalCues: () => void;
+  removeSimpleFocalCues: () => void;
+  toggleSimpleFocalCues: () => void;
+  
+  // Content-Aware Enhancement
+  applyContentAwareEnhancement: () => void;
+  removeContentAwareEnhancement: () => void;
+  toggleContentAwareEnhancement: () => void;
+  
+  // Typography Optimization
+  optimizeTypographyForPresbyopia: () => void;
+  removeTypographyOptimization: () => void;
+  toggleTypographyOptimization: () => void;
+  
+  // Comprehensive Processing
+  triggerProcessing: () => void;
 }
 
 const DEFAULT_SETTINGS: VisionSettings = {
@@ -157,6 +184,38 @@ export const useVisionCorrection = (): UseVisionCorrectionReturn => {
     window.dispatchEvent(new CustomEvent('webgl-state-sync', {
       detail: { webglEnabled: newState }
     }));
+  }, []);
+
+  // Simple parallax implementation for focal cues
+  useEffect(() => {
+    let parallaxTicking = false;
+    
+    const updateParallax = () => {
+      const parallaxElements = document.querySelectorAll('[data-parallax="true"]');
+      const scrolled = window.pageYOffset;
+      
+      parallaxElements.forEach(el => {
+        const element = el as HTMLElement;
+        const parallax = scrolled * -0.01; // Very subtle movement
+        element.style.transform = `translateY(${parallax}px)`;
+      });
+      
+      parallaxTicking = false;
+    };
+
+    const requestParallax = () => {
+      if (!parallaxTicking) {
+        requestAnimationFrame(updateParallax);
+        parallaxTicking = true;
+      }
+    };
+
+    // Add scroll event listener for parallax
+    window.addEventListener('scroll', requestParallax, { passive: true });
+    
+    return () => {
+      window.removeEventListener('scroll', requestParallax);
+    };
   }, []);
 
   // Calculate adjusted reading vision based on device type
@@ -1088,6 +1147,329 @@ export const useVisionCorrection = (): UseVisionCorrectionReturn => {
     
     getFoundationStatus: getWeekOneFoundationStatus,
     isFoundationActive: isWeekOneFoundationActive,
+    
+    // Maximum Presbyopia Enhancement
+    applyMaximumFoundation: useCallback(() => {
+      try {
+        applyMaximumPresbyopiaFoundation();
+        console.log('✅ Maximum foundation applied via hook');
+      } catch (error) {
+        console.error('❌ Error applying maximum foundation:', error);
+      }
+    }, []),
+    
+    removeMaximumFoundation: useCallback(() => {
+      try {
+        removeMaximumPresbyopiaFoundation();
+        console.log('✅ Maximum foundation removed via hook');
+      } catch (error) {
+        console.error('❌ Error removing maximum foundation:', error);
+      }
+    }, []),
+    
+    toggleMaximumFoundation: useCallback(() => {
+      const hasMaximum = document.querySelectorAll('.presbyopia-maximum-enhanced').length > 0;
+      if (hasMaximum) {
+        removeMaximumPresbyopiaFoundation();
+      } else {
+        applyMaximumPresbyopiaFoundation();
+      }
+    }, []),
+    
+    applyMaximumEnhancement: useCallback((element: HTMLElement) => {
+      try {
+        applyMaximumPresbyopiaEnhancement(element);
+        console.log('✅ Maximum enhancement applied to element');
+      } catch (error) {
+        console.error('❌ Error applying maximum enhancement:', error);
+      }
+    }, []),
+    
+    // Simple Focal Cues
+    addSimpleFocalCues: useCallback(() => {
+      try {
+        // Only enhance elements already processed by Week 1 Foundation
+        const enhancedElements = document.querySelectorAll('.presbyopia-enhanced');
+        
+        enhancedElements.forEach(el => {
+          const element = el as HTMLElement;
+          
+          // Simple depth cue: subtle shadow suggests text is "floating" at comfortable distance
+          element.style.boxShadow = '0 1px 2px rgba(0,0,0,0.08)';
+          
+          // Subtle parallax on scroll (minimal performance impact)
+          element.setAttribute('data-parallax', 'true');
+        });
+        
+        console.log('🎯 Simple focal cues applied to', enhancedElements.length, 'elements');
+      } catch (error) {
+        console.error('❌ Error applying simple focal cues:', error);
+      }
+    }, []),
+    
+    removeSimpleFocalCues: useCallback(() => {
+      try {
+        const parallaxElements = document.querySelectorAll('[data-parallax="true"]');
+        
+        parallaxElements.forEach(el => {
+          const element = el as HTMLElement;
+          element.style.boxShadow = '';
+          element.style.transform = '';
+          element.removeAttribute('data-parallax');
+        });
+        
+        console.log('🧹 Simple focal cues removed from', parallaxElements.length, 'elements');
+      } catch (error) {
+        console.error('❌ Error removing simple focal cues:', error);
+      }
+    }, []),
+    
+    toggleSimpleFocalCues: useCallback(() => {
+      const hasFocalCues = document.querySelectorAll('[data-parallax="true"]').length > 0;
+      if (hasFocalCues) {
+        // Remove focal cues
+        const parallaxElements = document.querySelectorAll('[data-parallax="true"]');
+        parallaxElements.forEach(el => {
+          const element = el as HTMLElement;
+          element.style.boxShadow = '';
+          element.style.transform = '';
+          element.removeAttribute('data-parallax');
+        });
+        console.log('🧹 Simple focal cues removed');
+      } else {
+        // Add focal cues
+        const enhancedElements = document.querySelectorAll('.presbyopia-enhanced');
+        enhancedElements.forEach(el => {
+          const element = el as HTMLElement;
+          element.style.boxShadow = '0 1px 2px rgba(0,0,0,0.08)';
+          element.setAttribute('data-parallax', 'true');
+        });
+        console.log('🎯 Simple focal cues applied to', enhancedElements.length, 'elements');
+      }
+    }, []),
+    
+    // Content-Aware Enhancement
+    applyContentAwareEnhancement: useCallback(() => {
+      try {
+        const enhancedElements = document.querySelectorAll('.presbyopia-enhanced');
+        let enhancedCount = 0;
+        
+        enhancedElements.forEach(el => {
+          const element = el as HTMLElement;
+          const fontSize = parseFloat(getComputedStyle(element).fontSize);
+          const textContent = element.textContent || '';
+          
+          // Simple rule: extra enhancement for small text (biggest presbyopia challenge)
+          if (fontSize < 14 || /\d/.test(textContent)) {
+            // Add extra contrast for small text and numbers
+            const currentFilter = element.style.filter;
+            element.style.filter = currentFilter + ' contrast(1.1)';
+            element.style.fontWeight = '600';
+            element.setAttribute('data-content-aware', 'true');
+            enhancedCount++;
+          }
+        });
+        
+        console.log('🎯 Content-aware enhancement applied to', enhancedCount, 'elements');
+      } catch (error) {
+        console.error('❌ Error applying content-aware enhancement:', error);
+      }
+    }, []),
+    
+    removeContentAwareEnhancement: useCallback(() => {
+      try {
+        const contentAwareElements = document.querySelectorAll('[data-content-aware="true"]');
+        
+        contentAwareElements.forEach(el => {
+          const element = el as HTMLElement;
+          // Remove extra contrast (keep base filter)
+          const currentFilter = element.style.filter;
+          element.style.filter = currentFilter.replace(' contrast(1.1)', '');
+          element.style.fontWeight = '';
+          element.removeAttribute('data-content-aware');
+        });
+        
+        console.log('🧹 Content-aware enhancement removed from', contentAwareElements.length, 'elements');
+      } catch (error) {
+        console.error('❌ Error removing content-aware enhancement:', error);
+      }
+    }, []),
+    
+    toggleContentAwareEnhancement: useCallback(() => {
+      const hasContentAware = document.querySelectorAll('[data-content-aware="true"]').length > 0;
+      if (hasContentAware) {
+        // Remove content-aware enhancement
+        const contentAwareElements = document.querySelectorAll('[data-content-aware="true"]');
+        contentAwareElements.forEach(el => {
+          const element = el as HTMLElement;
+          const currentFilter = element.style.filter;
+          element.style.filter = currentFilter.replace(' contrast(1.1)', '');
+          element.style.fontWeight = '';
+          element.removeAttribute('data-content-aware');
+        });
+        console.log('🧹 Content-aware enhancement removed');
+      } else {
+        // Add content-aware enhancement
+        const enhancedElements = document.querySelectorAll('.presbyopia-enhanced');
+        let enhancedCount = 0;
+        
+        enhancedElements.forEach(el => {
+          const element = el as HTMLElement;
+          const fontSize = parseFloat(getComputedStyle(element).fontSize);
+          const textContent = element.textContent || '';
+          
+          if (fontSize < 14 || /\d/.test(textContent)) {
+            const currentFilter = element.style.filter;
+            element.style.filter = currentFilter + ' contrast(1.1)';
+            element.style.fontWeight = '600';
+            element.setAttribute('data-content-aware', 'true');
+            enhancedCount++;
+          }
+        });
+        console.log('🎯 Content-aware enhancement applied to', enhancedCount, 'elements');
+      }
+    }, []),
+    
+    // Typography Optimization
+    optimizeTypographyForPresbyopia: useCallback(() => {
+      try {
+        const enhancedElements = document.querySelectorAll('.presbyopia-enhanced');
+        
+        enhancedElements.forEach(el => {
+          const element = el as HTMLElement;
+          
+          // Simple presbyopia-friendly typography adjustments
+          element.style.letterSpacing = '0.02em';  // Slightly more spacing
+          element.style.lineHeight = '1.5';        // Comfortable line height
+          
+          // Subtle text outline for better definition
+          element.style.textShadow = '0 0 0.5px rgba(0,0,0,0.2)';
+          
+          element.setAttribute('data-typography-optimized', 'true');
+        });
+        
+        console.log('🎯 Typography optimized for presbyopia on', enhancedElements.length, 'elements');
+      } catch (error) {
+        console.error('❌ Error optimizing typography:', error);
+      }
+    }, []),
+    
+    removeTypographyOptimization: useCallback(() => {
+      try {
+        const typographyElements = document.querySelectorAll('[data-typography-optimized="true"]');
+        
+        typographyElements.forEach(el => {
+          const element = el as HTMLElement;
+          element.style.letterSpacing = '';
+          element.style.lineHeight = '';
+          element.style.textShadow = '';
+          element.removeAttribute('data-typography-optimized');
+        });
+        
+        console.log('🧹 Typography optimization removed from', typographyElements.length, 'elements');
+      } catch (error) {
+        console.error('❌ Error removing typography optimization:', error);
+      }
+    }, []),
+    
+    toggleTypographyOptimization: useCallback(() => {
+      const hasTypographyOptimization = document.querySelectorAll('[data-typography-optimized="true"]').length > 0;
+      if (hasTypographyOptimization) {
+        // Remove typography optimization
+        const typographyElements = document.querySelectorAll('[data-typography-optimized="true"]');
+        typographyElements.forEach(el => {
+          const element = el as HTMLElement;
+          element.style.letterSpacing = '';
+          element.style.lineHeight = '';
+          element.style.textShadow = '';
+          element.removeAttribute('data-typography-optimized');
+        });
+        console.log('🧹 Typography optimization removed');
+      } else {
+        // Add typography optimization
+        const enhancedElements = document.querySelectorAll('.presbyopia-enhanced');
+        enhancedElements.forEach(el => {
+          const element = el as HTMLElement;
+          element.style.letterSpacing = '0.02em';
+          element.style.lineHeight = '1.5';
+          element.style.textShadow = '0 0 0.5px rgba(0,0,0,0.2)';
+          element.setAttribute('data-typography-optimized', 'true');
+        });
+        console.log('🎯 Typography optimized for presbyopia on', enhancedElements.length, 'elements');
+      }
+    }, []),
+    
+    // Comprehensive Processing
+    triggerProcessing: useCallback(() => {
+      try {
+        console.log('🎯 Triggering comprehensive presbyopia processing...');
+        
+        // Apply Week 1 Foundation first
+        applyWeekOneFoundation();
+        
+        // Add enhancements progressively with delays
+        setTimeout(() => {
+          try {
+            // Add simple focal cues
+            const enhancedElements = document.querySelectorAll('.presbyopia-enhanced');
+            enhancedElements.forEach(el => {
+              const element = el as HTMLElement;
+              element.style.boxShadow = '0 1px 2px rgba(0,0,0,0.08)';
+              element.setAttribute('data-parallax', 'true');
+            });
+            console.log('✅ Simple focal cues applied');
+          } catch (error) {
+            console.error('❌ Error applying focal cues:', error);
+          }
+        }, 100);
+        
+        setTimeout(() => {
+          try {
+            // Apply content-aware enhancement
+            const enhancedElements = document.querySelectorAll('.presbyopia-enhanced');
+            let enhancedCount = 0;
+            
+            enhancedElements.forEach(el => {
+              const element = el as HTMLElement;
+              const fontSize = parseFloat(getComputedStyle(element).fontSize);
+              const textContent = element.textContent || '';
+              
+              if (fontSize < 14 || /\d/.test(textContent)) {
+                const currentFilter = element.style.filter;
+                element.style.filter = currentFilter + ' contrast(1.1)';
+                element.style.fontWeight = '600';
+                element.setAttribute('data-content-aware', 'true');
+                enhancedCount++;
+              }
+            });
+            console.log('✅ Content-aware enhancement applied to', enhancedCount, 'elements');
+          } catch (error) {
+            console.error('❌ Error applying content-aware enhancement:', error);
+          }
+        }, 200);
+        
+        setTimeout(() => {
+          try {
+            // Apply typography optimization
+            const enhancedElements = document.querySelectorAll('.presbyopia-enhanced');
+            enhancedElements.forEach(el => {
+              const element = el as HTMLElement;
+              element.style.letterSpacing = '0.02em';
+              element.style.lineHeight = '1.5';
+              element.style.textShadow = '0 0 0.5px rgba(0,0,0,0.2)';
+              element.setAttribute('data-typography-optimized', 'true');
+            });
+            console.log('✅ Typography optimization applied');
+          } catch (error) {
+            console.error('❌ Error applying typography optimization:', error);
+          }
+        }, 300);
+        
+        console.log('🎯 All presbyopia enhancements applied progressively');
+      } catch (error) {
+        console.error('❌ Error in triggerProcessing:', error);
+      }
+    }, []),
   };
 };
 
