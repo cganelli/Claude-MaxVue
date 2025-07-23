@@ -10,6 +10,6 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 5173
-    // No HTTPS - use HTTP for development
+    // No HTTPS - Netlify provides HTTPS automatically
   }
 });
