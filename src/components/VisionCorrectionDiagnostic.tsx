@@ -127,32 +127,21 @@ export const VisionCorrectionDiagnostic: React.FC<VisionCorrectionDiagnosticProp
     }, {});
   };
 
-  // Simplified UI element detection for mobile compatibility
+  // Mobile-safe UI element detection
   const isUIElement = (element: HTMLElement): boolean => {
-    try {
-      // Basic UI elements
-      if (['BUTTON', 'IMG', 'INPUT', 'A', 'SVG'].includes(element.tagName)) {
-        return true;
-      }
-      
-      // Simple class checks
-      if (element.className && (
-          element.className.includes('btn') ||
-          element.className.includes('button')
-        )) {
-        return true;
-      }
-      
-      // Simple parent checks
-      if (element.closest('button, img, a')) {
-        return true;
-      }
-      
-      return false;
-    } catch (error) {
-      console.error('isUIElement error:', error);
-      return false; // Default to not UI element if error
+    // Simple tagName checks only (most reliable)
+    if (['BUTTON', 'IMG', 'INPUT', 'A', 'SVG', 'CANVAS', 'VIDEO'].includes(element.tagName)) {
+      return true;
     }
+    
+    // Simple className checks (avoid complex regex)
+    const className = element.className || '';
+    if (className.includes('btn') || className.includes('button')) {
+      return true;
+    }
+    
+    // Avoid complex DOM queries that might break on mobile
+    return false;
   };
 
   const fixOverexposure = () => {
