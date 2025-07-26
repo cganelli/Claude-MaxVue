@@ -3,7 +3,7 @@
 // Purpose: Test interface for Week 1 Foundation functionality
 // Follows CLAUDE.md and project best practices
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useVisionCorrection } from '../hooks/useVisionCorrection';
 
 export const WeekOneTest: React.FC = () => {
@@ -37,38 +37,90 @@ export const WeekOneTest: React.FC = () => {
     setTimeout(updateStatus, 100);
   };
 
-  const equalizeAllText = () => {
-    console.log('🎯 EQUALIZING ALL TEXT TO SECTION 1 CLARITY...');
+  // Add this useEffect to automatically equalize on page load
+  useEffect(() => {
+    const autoEqualizeText = () => {
+      console.log('🎯 AUTO-EQUALIZING ALL TEXT (Default Baseline)...');
+      
+      const textElements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, span, li, div, td, th');
+      let applied = 0;
+      
+      textElements.forEach(element => {
+        const htmlElement = element as HTMLElement;
+        
+        // Skip UI elements
+        if (htmlElement.tagName === 'BUTTON' || 
+            htmlElement.tagName === 'IMG' ||
+            htmlElement.closest('button') ||
+            htmlElement.className.includes('btn')) {
+          return;
+        }
+        
+        // Apply consistent baseline to all text
+        if (htmlElement.textContent && htmlElement.textContent.trim().length > 5) {
+          htmlElement.style.filter = '';
+          htmlElement.style.fontWeight = '400';
+          htmlElement.classList.add('equalized-baseline');
+          applied++;
+        }
+      });
+      
+      console.log(`✅ Auto-equalized ${applied} text elements as default baseline`);
+    };
     
-    // Use Section 1's clear baseline - no enhancement, just consistency
-    const textElements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, span, li, div, td, th');
+    // Auto-equalize after component mount
+    setTimeout(autoEqualizeText, 1000);
+  }, []);
+
+  const applyFoundation = () => {
+    console.log('🚀 Applying Foundation with UI Protection...');
+    
+    const foundationFilter = 'contrast(1.6) brightness(1.12) drop-shadow(0 0 0.4px rgba(0,0,0,0.6))';
+    const textElements = document.querySelectorAll('.equalized-baseline');
     let applied = 0;
     
     textElements.forEach(element => {
       const htmlElement = element as HTMLElement;
       
-      // Skip UI elements with simple checks
+      // Double-check UI exclusion
       if (htmlElement.tagName === 'BUTTON' || 
           htmlElement.tagName === 'IMG' ||
-          htmlElement.closest('button') ||
+          htmlElement.closest('button, img') ||
           htmlElement.className.includes('btn')) {
         return;
       }
       
-      // Apply consistent baseline to all text (same as Section 1)
-      if (htmlElement.textContent && htmlElement.textContent.trim().length > 5) {
-        // Clear any existing filters first
-        htmlElement.style.filter = '';
-        htmlElement.style.fontWeight = '';
-        
-        // Apply Section 1 baseline (clear, consistent)
-        htmlElement.style.filter = 'none';
-        htmlElement.style.fontWeight = '400';
-        applied++;
-      }
+      // Apply Foundation only to equalized text elements
+      htmlElement.style.filter = foundationFilter;
+      htmlElement.style.fontWeight = '500';
+      applied++;
     });
     
-    console.log(`✅ Equalized ${applied} text elements to Section 1 clarity baseline`);
+    console.log(`✅ Applied Foundation to ${applied} text elements (UI protected)`);
+  };
+
+  const applyEnhancedFilter = (filterCSS: string, filterName: string) => {
+    console.log(`🎯 Applying ${filterName} to equalized baseline...`);
+    
+    const textElements = document.querySelectorAll('.equalized-baseline');
+    let applied = 0;
+    
+    textElements.forEach(element => {
+      const htmlElement = element as HTMLElement;
+      
+      // Skip UI elements
+      if (htmlElement.tagName === 'BUTTON' || 
+          htmlElement.tagName === 'IMG' ||
+          htmlElement.closest('button, img')) {
+        return;
+      }
+      
+      htmlElement.style.filter = filterCSS;
+      htmlElement.style.fontWeight = '520';
+      applied++;
+    });
+    
+    console.log(`✅ Applied ${filterName} to ${applied} text elements`);
   };
   
   return (
@@ -85,7 +137,7 @@ export const WeekOneTest: React.FC = () => {
       
       <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
         <button 
-          onClick={handleApply}
+          onClick={applyFoundation}
           style={{
             padding: '8px 16px',
             backgroundColor: '#28a745',
@@ -140,37 +192,19 @@ export const WeekOneTest: React.FC = () => {
           📊 Check Status
         </button>
         
+        {/* Enhanced Filter Testing - Add these alongside existing buttons */}
         <button
-          onClick={() => {
-            console.log('🎯 EQUALIZING ALL TEXT TO SECTION 1 CLARITY...');
-            
-            const textElements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, span, li, div, td, th');
-            let applied = 0;
-            
-            textElements.forEach(element => {
-              const htmlElement = element as HTMLElement;
-              
-              // Skip UI elements
-              if (htmlElement.tagName === 'BUTTON' || 
-                  htmlElement.tagName === 'IMG' ||
-                  htmlElement.closest('button') ||
-                  htmlElement.className.includes('btn')) {
-                return;
-              }
-              
-              // Clear existing filters and apply consistent baseline
-              if (htmlElement.textContent && htmlElement.textContent.trim().length > 5) {
-                htmlElement.style.filter = '';
-                htmlElement.style.fontWeight = '400';
-                applied++;
-              }
-            });
-            
-            console.log(`✅ Equalized ${applied} text elements to Section 1 baseline`);
-          }}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm font-medium"
+          onClick={() => applyEnhancedFilter('contrast(1.8) brightness(1.15) drop-shadow(0 0 0.3px rgba(0,0,0,0.9))', 'Enhanced Contrast')}
+          className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 text-sm font-medium"
         >
-          🎯 Equalize All Text
+          🔥 Enhanced Contrast
+        </button>
+
+        <button
+          onClick={() => applyEnhancedFilter('contrast(1.7) brightness(1.12) saturate(1.1) drop-shadow(0 0 0.2px rgba(0,0,0,1.0))', 'Maximum Sharpness')}
+          className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm font-medium"
+        >
+          ⚡ Maximum Sharpness
         </button>
       </div>
       
