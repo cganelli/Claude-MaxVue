@@ -51,15 +51,16 @@ export const useAdvancedProcessing = () => {
     });
   }, [config.enabled]);
 
-  const processPageContent = useCallback(async () => {
+  const processPageContent = useCallback(async (configOverride?: AdvancedProcessingConfig) => {
     console.log('🔴 processPageContent ENTRY - function called');
     
-    // Force fresh state read
-    const currentConfig = config;
-    console.log('🔴 FRESH CONFIG READ:', currentConfig.processingParams);
-    console.log('🔴 Fresh Edge Enhancement:', currentConfig.processingParams.edgeEnhancement);
-    console.log('🔴 Fresh Unsharp Strength:', currentConfig.processingParams.unsharpStrength);
-    console.log('🔴 Fresh Contrast Boost:', currentConfig.processingParams.contrastBoost);
+    // FIXED: Use config parameter instead of stale closure state
+    const currentConfig = configOverride || config;
+    console.log('🔴 CONFIG READ (FIXED):', currentConfig.processingParams);
+    console.log('🔴 Edge Enhancement:', currentConfig.processingParams.edgeEnhancement);
+    console.log('🔴 Unsharp Strength:', currentConfig.processingParams.unsharpStrength);
+    console.log('🔴 Contrast Boost:', currentConfig.processingParams.contrastBoost);
+    console.log('🔴 Enabled:', currentConfig.enabled);
     
     if (!currentConfig.enabled || isProcessing) {
       console.log('❌ Early return - enabled:', currentConfig.enabled, 'isProcessing:', isProcessing);
@@ -69,13 +70,13 @@ export const useAdvancedProcessing = () => {
     setIsProcessing(true);
     
     try {
-      console.log('🔴 About to process with FRESH params:', currentConfig.processingParams);
+      console.log('🔴 About to process with FIXED params:', currentConfig.processingParams);
       
       const elements = document.querySelectorAll(currentConfig.targetElements.join(', '));
       console.log('🔴 Found elements:', elements.length);
       
       for (const element of elements) {
-        console.log('🔴 Processing element with FRESH edge enhancement:', currentConfig.processingParams.edgeEnhancement);
+        console.log('🔴 Processing element with FIXED edge enhancement:', currentConfig.processingParams.edgeEnhancement);
         await processor.processElement(element as HTMLElement, currentConfig.processingParams);
         console.log('✅ Element processed successfully');
         break; // Process only first element for testing
@@ -87,7 +88,7 @@ export const useAdvancedProcessing = () => {
     } finally {
       setIsProcessing(false);
     }
-  }, []); // Remove ALL dependencies to force fresh closure
+  }, [config, isProcessing, processor]); // FIXED: Add proper dependencies
 
   return {
     config,

@@ -95,35 +95,90 @@ export const applyMaximumPresbyopiaEnhancement = (element: HTMLElement): void =>
 /**
  * Apply maximum enhancement to all suitable elements
  */
-export const applyMaximumPresbyopiaFoundation = (): void => {
-  console.log('🚀 Applying Maximum Presbyopia Foundation...');
+export const applyMaximumPresbyopiaFoundation = (): number => {
+  console.log('🚀 Applying Week 1 Foundation with COMPREHENSIVE image protection...');
   
   const startTime = Date.now();
-  let enhancedElements = 0;
+  const allElements = document.querySelectorAll('*');
+  let enhancedCount = 0;
+  let skippedImages = 0;
+  let skippedButtons = 0;
   
-  try {
-    document.querySelectorAll('*').forEach(element => {
-      const el = element as HTMLElement;
-      
-      // Skip if already processed
-      if (el.classList.contains('presbyopia-maximum-enhanced')) return;
-      
-      // Apply maximum enhancement
-      applyMaximumPresbyopiaEnhancement(el);
-      
-      if (el.classList.contains('presbyopia-maximum-enhanced')) {
-        enhancedElements++;
-      }
-    });
+  allElements.forEach((el) => {
+    const element = el as HTMLElement;
     
-    const processingTime = Date.now() - startTime;
-    console.log(`✅ Maximum Foundation applied: ${enhancedElements} elements enhanced`);
-    console.log(`⏱️ Processing time: ${processingTime}ms`);
-    console.log('🎯 Target: 3.3 → 3.8/10 effectiveness for severe presbyopia');
+    // COMPREHENSIVE: Check if element is or contains images
+    const isImageElement = (
+      element.tagName === 'IMG' ||
+      element.tagName === 'SVG' ||
+      element.tagName === 'CANVAS' ||
+      element.tagName === 'VIDEO' ||
+      element.tagName === 'PICTURE'
+    );
     
-  } catch (error) {
-    console.error('❌ Maximum Foundation error:', error);
-  }
+    // Check if element contains images
+    const containsImages = element.querySelector('img, svg, canvas, video, picture') !== null;
+    
+    // Check for background images
+    const hasBackgroundImage = (
+      element.style.backgroundImage && 
+      element.style.backgroundImage !== 'none' && 
+      element.style.backgroundImage !== ''
+    );
+    
+    // Check if element is a button or UI element
+    const isUIElement = (
+      element.tagName === 'BUTTON' ||
+      element.getAttribute('role') === 'button' ||
+      element.classList.contains('btn') ||
+      element.classList.contains('button') ||
+      element.tagName === 'INPUT' ||
+      element.tagName === 'SELECT' ||
+      element.tagName === 'TEXTAREA' ||
+      element.closest('nav, header, footer, .navbar, .menu, [role="navigation"]') !== null
+    );
+    
+    // Check for valid text content
+    const hasValidText = (
+      element.textContent && 
+      element.textContent.trim().length > 10 &&
+      !element.textContent.trim().match(/^(click|button|menu|nav|submit|cancel|reset|toggle|enable|disable)$/i)
+    );
+    
+    // Decision logic: Only enhance text elements without images or UI functionality
+    if (isImageElement || containsImages || hasBackgroundImage) {
+      skippedImages++;
+      // Explicitly ensure no enhancement on image elements
+      element.classList.remove('presbyopia-enhanced');
+      element.style.filter = '';
+      return;
+    }
+    
+    if (isUIElement) {
+      skippedButtons++;
+      // Explicitly ensure no enhancement on UI elements
+      element.classList.remove('presbyopia-enhanced');
+      element.style.filter = '';
+      element.style.boxShadow = '';
+      return;
+    }
+    
+    // Only enhance pure text elements
+    if (hasValidText) {
+      element.style.filter = 'contrast(1.6) brightness(1.12) drop-shadow(0 0 0.4px rgba(0,0,0,0.6))';
+      element.style.fontWeight = '500';
+      element.classList.add('presbyopia-enhanced');
+      enhancedCount++;
+    }
+  });
+  
+  console.log(`✅ Foundation applied: ${enhancedCount} text elements enhanced`);
+  console.log(`🚫 Protection: ${skippedImages} image elements skipped`);
+  console.log(`🚫 Protection: ${skippedButtons} UI elements skipped`);
+  console.log(`⏱️ Processing time: ${Date.now() - startTime}ms`);
+  console.log(`🎯 Target: 3.0 → 3.3/10 effectiveness with comprehensive protection`);
+  
+  return enhancedCount;
 };
 
 /**

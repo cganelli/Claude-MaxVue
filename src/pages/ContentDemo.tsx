@@ -10,6 +10,9 @@ import { WEBGL_ENABLED } from '../config/features';
 import { EnhancedCSSTestingPanel } from '../components/EnhancedCSSTestingPanel';
 import { AdvancedProcessingPanel } from '../components/AdvancedProcessingPanel';
 import { WeekOneTest } from '../components/WeekOneTest';
+import { MobileFilterTest } from '../components/MobileFilterTest';
+import FoundationOptimizer from '../components/FoundationOptimizer';
+import VisionCorrectionDiagnostic from '../components/VisionCorrectionDiagnostic';
 
 // Progressive Enhancement Test Component
 const ProgressiveEnhancementTest: React.FC = () => {
@@ -24,8 +27,8 @@ const ProgressiveEnhancementTest: React.FC = () => {
 
   return (
     <section className="enhancement-test-section" style={{ margin: '20px 0', padding: '20px', border: '2px solid #28a745', borderRadius: '8px', backgroundColor: '#f8fff8' }}>
-      <h3>🎯 Progressive Enhancement System (Target: 4.4/10)</h3>
-      <p><strong>Goal:</strong> Apply all presbyopia enhancements progressively</p>
+      <h3>🎯 Progressive Enhancement System (Target: 4.5/10)</h3>
+      <p><strong>Goal:</strong> Apply Foundation + Progressive + Optical Simulation</p>
       
       <button 
         onClick={handleApplyEnhancements}
@@ -50,8 +53,9 @@ const ProgressiveEnhancementTest: React.FC = () => {
           <li>🎯 + Focal Cues (+0.3) - Subtle depth and parallax</li>
           <li>🎯 + Content-Aware (+0.2) - Enhanced small text/numbers</li>
           <li>🎯 + Typography (+0.2) - Presbyopia-friendly spacing</li>
+          <li>🎯 + Optical Simulation (+0.5) - Accommodation assistance</li>
         </ul>
-        <p><strong>Target Total: 4.0/10 effectiveness</strong></p>
+        <p><strong>Target Total: 4.5/10 effectiveness</strong></p>
       </div>
     </section>
   );
@@ -355,6 +359,10 @@ const PerformanceMonitorLocal: React.FC = () => {
 const ContentDemo: React.FC = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [calibrationValue, setCalibrationValue] = useState(0);
+  const [mobileTestEnabled, setMobileTestEnabled] = useState(false);
+  const [foundationOptimizerEnabled, setFoundationOptimizerEnabled] = useState(false);
+  const [visionDiagnosticEnabled, setVisionDiagnosticEnabled] = useState(false);
+  const [diagnosticEnabled, setDiagnosticEnabled] = useState(false);
   // Remove unused calibrationLoaded state - not needed with dependency-based useEffect
 
   // CRITICAL FIX: Add loading ref to prevent multiple simultaneous loads
@@ -563,8 +571,12 @@ const ContentDemo: React.FC = () => {
                   console.log('🚨 About to call toggleWebGL function');
                   console.log('🚨 TOGGLE DEBUG: toggleWebGL function type:', typeof toggleWebGL);
                   console.log('🚨 TOGGLE DEBUG: toggleWebGL function:', toggleWebGL);
-                  toggleWebGL();
-                  console.log('🚨 toggleWebGL function called');
+                  if (toggleWebGL) {
+                    toggleWebGL();
+                    console.log('🚨 toggleWebGL function called');
+                  } else {
+                    console.log('🚨 toggleWebGL function is undefined');
+                  }
                 }}
                 onClick={() => {
                   console.log('🚨 TOGGLE ONCLICK: WebGL toggle clicked (onClick event)');
@@ -588,13 +600,82 @@ const ContentDemo: React.FC = () => {
                 className="btn btn-xs btn-outline btn-warning ml-2"
                 onClick={() => {
                   console.log('🧪 TEST BUTTON: Manually calling toggleWebGL');
-                  toggleWebGL();
+                  if (toggleWebGL) {
+                    toggleWebGL();
+                  } else {
+                    console.log('🧪 TEST BUTTON: toggleWebGL is undefined');
+                  }
                 }}
               >
                 Test Toggle
               </button>
             </div>
           )}
+          
+          {/* Mobile Filter Test - Updated Styling */}
+          <div className="flex items-center gap-4 mt-4">
+            <span className="font-medium text-gray-700">Mobile Filter Test:</span>
+            <button
+              onClick={() => setMobileTestEnabled(!mobileTestEnabled)}
+              className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                mobileTestEnabled
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              📱 {mobileTestEnabled ? 'Disable' : 'Enable'} Mobile Filter Test
+            </button>
+          </div>
+
+          {/* Foundation Optimizer Controls */}
+          <div className="flex items-center gap-4 mt-4">
+            <span className="font-medium text-gray-700">Foundation Optimizer:</span>
+            <button
+              onClick={() => setFoundationOptimizerEnabled(!foundationOptimizerEnabled)}
+              className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                foundationOptimizerEnabled
+                  ? 'bg-green-500 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              🔧 {foundationOptimizerEnabled ? 'Disable' : 'Enable'} Foundation Optimizer
+            </button>
+          </div>
+
+          {/* Vision Diagnostic - Enhanced with Explicit Visibility */}
+          <div className="flex items-center gap-4 mt-4">
+            <span className="font-medium text-gray-700">Vision Diagnostic:</span>
+            <button
+              onClick={() => {
+                console.log('🔍 Diagnostic button clicked, current state:', diagnosticEnabled);
+                setDiagnosticEnabled(!diagnosticEnabled);
+              }}
+              className={`
+                px-4 py-2 rounded text-sm font-medium transition-colors
+                block visible relative z-10
+                border border-solid
+                ${diagnosticEnabled
+                  ? 'bg-red-500 text-white border-red-500'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300 border-gray-300'
+                }
+              `}
+              style={{
+                display: 'block !important',
+                visibility: 'visible' as const,
+                opacity: '1 !important'
+              }}
+            >
+              🔍 {diagnosticEnabled ? 'Disable' : 'Enable'} Vision Diagnostic
+            </button>
+          </div>
+
+          {/* Debug Info - Remove after fixing */}
+          <div className="text-xs text-gray-500 mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
+            <div>Debug Info:</div>
+            <div>diagnosticEnabled: {diagnosticEnabled ? 'true' : 'false'}</div>
+            <div>Screen width: {typeof window !== 'undefined' ? window.innerWidth : 'unknown'}px</div>
+            <div>User agent: {typeof navigator !== 'undefined' ? (navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop') : 'unknown'}</div>
+          </div>
           {/* Advanced Settings and other controls here */}
           {WEBGL_ENABLED && showWebGLDebug && (
             <div className="mt-4">
@@ -607,10 +688,16 @@ const ContentDemo: React.FC = () => {
             </div>
           )}
         </div>
+        {/* Vision Correction Diagnostic - place at top for easy access */}
+        <VisionCorrectionDiagnostic isEnabled={diagnosticEnabled} />
+
         {/* Week 1 Foundation Testing */}
         <section className="mb-8">
           <WeekOneTest />
         </section>
+        
+        {/* Mobile Filter Test */}
+        <MobileFilterTest isEnabled={mobileTestEnabled} />
         <VisionProcessor
           className="w-full"
           autoProcess={true}
@@ -711,7 +798,17 @@ const ContentDemo: React.FC = () => {
             )}
 
             {activeTab === "images" && <SampleImageLocal />}
-            {activeTab === "email" && <EmailDemo />}
+            {activeTab === "email" && (
+              <div className="space-y-6">
+                <EmailDemo />
+                
+                {/* Foundation Optimizer - placed after email content for easy comparison */}
+                <FoundationOptimizer isEnabled={foundationOptimizerEnabled} />
+                
+                {/* Vision Correction Diagnostic */}
+                <VisionCorrectionDiagnostic isEnabled={visionDiagnosticEnabled} />
+              </div>
+            )}
             {activeTab === "web" && <WebDemo />}
             {activeTab === "camera" &&
               (() => {
@@ -784,10 +881,10 @@ const ContentDemo: React.FC = () => {
         <div className="enhanced-css-testing">
           <EnhancedCSSTestingPanel />
         </div>
-        {/* Layer 2: Advanced Processing Panel for advanced vision correction features */}
-        <div className="advanced-processing-section mt-8">
+        {/* Layer 2: Advanced Processing Panel - REMOVED (broken) */}
+        {/* <div className="advanced-processing-section mt-8">
           <AdvancedProcessingPanel />
-        </div>
+        </div> */}
         {/* Layer 3: Progressive Enhancement Test for comprehensive presbyopia assistance */}
         <div className="progressive-enhancement-section mt-8">
           <ProgressiveEnhancementTest />

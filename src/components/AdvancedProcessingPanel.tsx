@@ -124,10 +124,10 @@ export const AdvancedProcessingPanel: React.FC = () => {
                   console.log('🔴 Config:', config);
                   console.log('🔴 isProcessing:', isProcessing);
                   
-                  // Call the original function
+                  // FIXED: Pass current config to ensure fresh state
                   try {
-                    processPageContent();
-                    console.log('✅ processPageContent called successfully');
+                    processPageContent(config);
+                    console.log('✅ processPageContent called successfully with current config');
                   } catch (error) {
                     console.error('❌ processPageContent failed:', error);
                   }
