@@ -36,6 +36,40 @@ export const WeekOneTest: React.FC = () => {
     toggleMinimalFoundation();
     setTimeout(updateStatus, 100);
   };
+
+  const equalizeAllText = () => {
+    console.log('🎯 EQUALIZING ALL TEXT TO SECTION 1 CLARITY...');
+    
+    // Use Section 1's clear baseline - no enhancement, just consistency
+    const textElements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, span, li, div, td, th');
+    let applied = 0;
+    
+    textElements.forEach(element => {
+      const htmlElement = element as HTMLElement;
+      
+      // Skip UI elements with simple checks
+      if (htmlElement.tagName === 'BUTTON' || 
+          htmlElement.tagName === 'IMG' ||
+          htmlElement.closest('button') ||
+          htmlElement.className.includes('btn')) {
+        return;
+      }
+      
+      // Apply consistent baseline to all text (same as Section 1)
+      if (htmlElement.textContent && htmlElement.textContent.trim().length > 5) {
+        // Clear any existing filters first
+        htmlElement.style.filter = '';
+        htmlElement.style.fontWeight = '';
+        
+        // Apply Section 1 baseline (clear, consistent)
+        htmlElement.style.filter = 'none';
+        htmlElement.style.fontWeight = '400';
+        applied++;
+      }
+    });
+    
+    console.log(`✅ Equalized ${applied} text elements to Section 1 clarity baseline`);
+  };
   
   return (
     <div style={{ 
@@ -104,6 +138,39 @@ export const WeekOneTest: React.FC = () => {
           }}
         >
           📊 Check Status
+        </button>
+        
+        <button
+          onClick={() => {
+            console.log('🎯 EQUALIZING ALL TEXT TO SECTION 1 CLARITY...');
+            
+            const textElements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, span, li, div, td, th');
+            let applied = 0;
+            
+            textElements.forEach(element => {
+              const htmlElement = element as HTMLElement;
+              
+              // Skip UI elements
+              if (htmlElement.tagName === 'BUTTON' || 
+                  htmlElement.tagName === 'IMG' ||
+                  htmlElement.closest('button') ||
+                  htmlElement.className.includes('btn')) {
+                return;
+              }
+              
+              // Clear existing filters and apply consistent baseline
+              if (htmlElement.textContent && htmlElement.textContent.trim().length > 5) {
+                htmlElement.style.filter = '';
+                htmlElement.style.fontWeight = '400';
+                applied++;
+              }
+            });
+            
+            console.log(`✅ Equalized ${applied} text elements to Section 1 baseline`);
+          }}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm font-medium"
+        >
+          🎯 Equalize All Text
         </button>
       </div>
       
