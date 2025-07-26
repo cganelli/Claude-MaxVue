@@ -10,6 +10,7 @@ interface VisionCorrectionDiagnosticProps {
 
 export const VisionCorrectionDiagnostic: React.FC<VisionCorrectionDiagnosticProps> = ({ isEnabled }) => {
   const [diagnosticResults, setDiagnosticResults] = useState<any[]>([]);
+  const [fixResults, setFixResults] = useState<string>('');
 
   useEffect(() => {
     if (isEnabled) {
@@ -110,33 +111,66 @@ export const VisionCorrectionDiagnostic: React.FC<VisionCorrectionDiagnosticProp
     }, {});
   };
 
-  const fixOverexposure = () => {
-    console.log('🔧 FIXING OVEREXPOSURE (TEXT ELEMENTS ONLY)...');
+  // Enhanced UI element detection
+  const isUIElement = (element: HTMLElement): boolean => {
+    // Direct UI elements
+    if (['BUTTON', 'IMG', 'INPUT', 'A', 'SVG', 'CANVAS', 'VIDEO', 'PICTURE'].includes(element.tagName)) {
+      return true;
+    }
     
-    const overexposedElements = document.querySelectorAll('[style*="filter"]');
+    // Elements containing images
+    if (element.querySelector('img, svg, canvas, video, picture')) {
+      return true;
+    }
+    
+    // Elements with background images
+    const computedStyle = window.getComputedStyle(element);
+    if (computedStyle.backgroundImage && computedStyle.backgroundImage !== 'none') {
+      return true;
+    }
+    
+    // Interactive elements
+    if (element.closest('button, a, [role="button"], [onclick]') ||
+        element.hasAttribute('onclick') ||
+        element.hasAttribute('role') && ['button', 'link', 'tab'].includes(element.getAttribute('role')!)) {
+      return true;
+    }
+    
+    // Class-based detection
+    if (element.className.includes('btn') ||
+        element.className.includes('button') ||
+        element.className.includes('image') ||
+        element.className.includes('img') ||
+        element.className.includes('icon')) {
+      return true;
+    }
+    
+    // Parent container checks
+    if (element.closest('.image, .img, [class*="image"], [class*="img"]')) {
+      return true;
+    }
+    
+    return false;
+  };
+
+  const fixOverexposure = () => {
+    const results: string[] = ['🔧 FIXING OVEREXPOSURE (SELECTIVE)...'];
+    
+    const allElements = document.querySelectorAll('[style*="filter"]');
     let fixed = 0;
     let skipped = 0;
     
-    overexposedElements.forEach(element => {
+    allElements.forEach(element => {
       const htmlElement = element as HTMLElement;
-      const filter = htmlElement.style.filter;
       
-      // Skip UI elements and buttons
-      if (htmlElement.tagName === 'BUTTON' ||
-          htmlElement.tagName === 'IMG' ||
-          htmlElement.tagName === 'INPUT' ||
-          htmlElement.tagName === 'A' ||
-          htmlElement.closest('button, a, [role="button"]') ||
-          htmlElement.querySelector('button, img, input, a') ||
-          htmlElement.className.includes('btn') ||
-          htmlElement.className.includes('button') ||
-          htmlElement.hasAttribute('onclick')) {
+      // Use the same enhanced UI detection
+      if (isUIElement(htmlElement)) {
         skipped++;
-        return; // Skip UI elements
+        return; // Skip UI elements entirely
       }
       
+      const filter = htmlElement.style.filter;
       if (filter) {
-        // Fix excessive brightness and contrast for text elements only
         const fixedFilter = filter
           .replace(/brightness\([^)]*\)/g, 'brightness(1.12)')
           .replace(/contrast\(([^)]*)\)/g, (match, value) => {
@@ -151,8 +185,12 @@ export const VisionCorrectionDiagnostic: React.FC<VisionCorrectionDiagnosticProp
       }
     });
     
-    console.log(`✅ Fixed ${fixed} overexposed TEXT elements`);
-    console.log(`🚫 Skipped ${skipped} UI elements (buttons, images, etc.)`);
+    results.push(`✅ Fixed ${fixed} overexposed TEXT elements`);
+    results.push(`🛡️ Protected ${skipped} UI elements (buttons/images)`);
+    results.push('Images and buttons should now be normal');
+    
+    setFixResults(results.join('\n'));
+    console.log(`✅ Selective overexposure fix: ${fixed} fixed, ${skipped} protected`);
   };
 
   const makeAllSectionsEqual = () => {
@@ -164,20 +202,14 @@ export const VisionCorrectionDiagnostic: React.FC<VisionCorrectionDiagnosticProp
     // Target only text elements, exclude UI elements
     const textElements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, span, li, div');
     let applied = 0;
+    let skipped = 0;
     
     textElements.forEach(element => {
       const htmlElement = element as HTMLElement;
       
-      // Skip buttons, images, and interactive elements
-      if (htmlElement.tagName === 'BUTTON' ||
-          htmlElement.tagName === 'IMG' ||
-          htmlElement.tagName === 'INPUT' ||
-          htmlElement.tagName === 'A' ||
-          htmlElement.closest('button, a, [role="button"]') ||
-          htmlElement.querySelector('button, img, input, a') ||
-          htmlElement.className.includes('btn') ||
-          htmlElement.className.includes('button') ||
-          htmlElement.hasAttribute('onclick')) {
+      // Use the same enhanced UI detection
+      if (isUIElement(htmlElement)) {
+        skipped++;
         return; // Skip UI elements
       }
       
@@ -190,7 +222,7 @@ export const VisionCorrectionDiagnostic: React.FC<VisionCorrectionDiagnosticProp
     });
     
     results.push(`✅ Applied Foundation filter to ${applied} TEXT elements only`);
-    results.push('🛡️ Skipped buttons, images, and interactive elements');
+    results.push(`🛡️ Protected ${skipped} UI elements (buttons/images)`);
     results.push('All text sections should now have equal clarity without UI overexposure');
     results.push('Reference filter: ' + referenceFilter);
     
@@ -243,6 +275,13 @@ export const VisionCorrectionDiagnostic: React.FC<VisionCorrectionDiagnosticProp
               <strong>{section}:</strong> {(elements as any[]).length} enhanced, {(elements as any[]).filter((e: any) => e.hasOverexposure).length} overexposed
             </div>
           ))}
+        </div>
+      )}
+
+      {fixResults && (
+        <div className="bg-green-50 border border-green-200 rounded p-3 mt-4">
+          <div className="text-sm font-medium text-green-900 mb-2">Fix Results:</div>
+          <pre className="text-xs text-green-800 whitespace-pre-wrap">{fixResults}</pre>
         </div>
       )}
 
