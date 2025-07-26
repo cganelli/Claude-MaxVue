@@ -11,6 +11,7 @@ interface VisionCorrectionDiagnosticProps {
 export const VisionCorrectionDiagnostic: React.FC<VisionCorrectionDiagnosticProps> = ({ isEnabled }) => {
   const [diagnosticResults, setDiagnosticResults] = useState<any[]>([]);
   const [fixResults, setFixResults] = useState<string>('');
+  const [mobileDebugInfo, setMobileDebugInfo] = useState<string>('');
 
   useEffect(() => {
     if (isEnabled) {
@@ -19,61 +20,76 @@ export const VisionCorrectionDiagnostic: React.FC<VisionCorrectionDiagnosticProp
   }, [isEnabled]);
 
   const runDiagnostic = () => {
-    console.log('🔍 VISION CORRECTION DIAGNOSTIC - Analyzing why sections have different clarity...');
+    setMobileDebugInfo('🔍 Starting mobile diagnostic...');
     
-    const results: any[] = [];
-    
-    // Analyze all elements with vision correction applied
-    const enhancedElements = document.querySelectorAll('[style*="filter"], .presbyopia-enhanced, .week-one-enhanced, .progressive-enhanced');
-    
-    enhancedElements.forEach((element, index) => {
-      const htmlElement = element as HTMLElement;
-      const computedStyle = window.getComputedStyle(htmlElement);
+    try {
+      console.log('🔍 MOBILE DIAGNOSTIC STARTING...');
       
-      const elementInfo = {
-        index: index + 1,
-        tagName: htmlElement.tagName,
-        className: htmlElement.className,
-        filter: htmlElement.style.filter || computedStyle.filter,
-        brightness: '',
-        contrast: '',
-        textContent: htmlElement.textContent?.substring(0, 50) + '...',
-        section: getSectionName(htmlElement),
-        hasOverexposure: isOverexposed(htmlElement)
-      };
+      // Add error catching around our enhanced detection
+      setMobileDebugInfo('✅ Diagnostic initialized, analyzing elements...');
       
-      results.push(elementInfo);
-    });
-
-    // Check for elements without vision correction
-    const unenhancedElements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, span, div');
-    let unenhancedCount = 0;
-    
-    unenhancedElements.forEach(element => {
-      const htmlElement = element as HTMLElement;
-      const hasFilter = htmlElement.style.filter || window.getComputedStyle(htmlElement).filter !== 'none';
-      const hasClass = htmlElement.className.includes('enhanced') || htmlElement.className.includes('presbyopia');
+      console.log('🔍 VISION CORRECTION DIAGNOSTIC - Analyzing why sections have different clarity...');
       
-      if (!hasFilter && !hasClass && htmlElement.textContent && htmlElement.textContent.trim().length > 10) {
-        unenhancedCount++;
-      }
-    });
-
-    console.log(`📊 DIAGNOSTIC RESULTS:`);
-    console.log(`✅ Elements WITH vision correction: ${results.length}`);
-    console.log(`❌ Elements WITHOUT vision correction: ${unenhancedCount}`);
-    console.log(`🔴 Overexposed elements: ${results.filter(r => r.hasOverexposure).length}`);
+      const results: any[] = [];
+      
+      // Analyze all elements with vision correction applied
+      const enhancedElements = document.querySelectorAll('[style*="filter"], .presbyopia-enhanced, .week-one-enhanced, .progressive-enhanced');
     
-    // Log section-by-section analysis
-    const sectionBreakdown = groupBySection(results);
-    Object.entries(sectionBreakdown).forEach(([section, elements]) => {
-      console.log(`\n📍 ${section.toUpperCase()}:`);
-      console.log(`   Elements enhanced: ${(elements as any[]).length}`);
-      console.log(`   Overexposed: ${(elements as any[]).filter((e: any) => e.hasOverexposure).length}`);
-      console.log(`   Sample filter: ${(elements as any[])[0]?.filter || 'None'}`);
-    });
+      enhancedElements.forEach((element, index) => {
+        const htmlElement = element as HTMLElement;
+        const computedStyle = window.getComputedStyle(htmlElement);
+        
+        const elementInfo = {
+          index: index + 1,
+          tagName: htmlElement.tagName,
+          className: htmlElement.className,
+          filter: htmlElement.style.filter || computedStyle.filter,
+          brightness: '',
+          contrast: '',
+          textContent: htmlElement.textContent?.substring(0, 50) + '...',
+          section: getSectionName(htmlElement),
+          hasOverexposure: isOverexposed(htmlElement)
+        };
+        
+        results.push(elementInfo);
+      });
 
-    setDiagnosticResults(results);
+      // Check for elements without vision correction
+      const unenhancedElements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, span, div');
+      let unenhancedCount = 0;
+      
+      unenhancedElements.forEach(element => {
+        const htmlElement = element as HTMLElement;
+        const hasFilter = htmlElement.style.filter || window.getComputedStyle(htmlElement).filter !== 'none';
+        const hasClass = htmlElement.className.includes('enhanced') || htmlElement.className.includes('presbyopia');
+        
+        if (!hasFilter && !hasClass && htmlElement.textContent && htmlElement.textContent.trim().length > 10) {
+          unenhancedCount++;
+        }
+      });
+
+      console.log(`📊 DIAGNOSTIC RESULTS:`);
+      console.log(`✅ Elements WITH vision correction: ${results.length}`);
+      console.log(`❌ Elements WITHOUT vision correction: ${unenhancedCount}`);
+      console.log(`🔴 Overexposed elements: ${results.filter(r => r.hasOverexposure).length}`);
+      
+      // Log section-by-section analysis
+      const sectionBreakdown = groupBySection(results);
+      Object.entries(sectionBreakdown).forEach(([section, elements]) => {
+        console.log(`\n📍 ${section.toUpperCase()}:`);
+        console.log(`   Elements enhanced: ${(elements as any[]).length}`);
+        console.log(`   Overexposed: ${(elements as any[]).filter((e: any) => e.hasOverexposure).length}`);
+        console.log(`   Sample filter: ${(elements as any[])[0]?.filter || 'None'}`);
+      });
+
+      setDiagnosticResults(results);
+      setMobileDebugInfo(`✅ Diagnostic complete: ${results.length} enhanced, ${unenhancedCount} unenhanced`);
+      
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setMobileDebugInfo(`❌ Mobile Error: ${errorMessage}`);
+      console.error('Mobile diagnostic error:', error);
+    }
   };
 
   const getSectionName = (element: HTMLElement): string => {
@@ -111,46 +127,32 @@ export const VisionCorrectionDiagnostic: React.FC<VisionCorrectionDiagnosticProp
     }, {});
   };
 
-  // Enhanced UI element detection
+  // Simplified UI element detection for mobile compatibility
   const isUIElement = (element: HTMLElement): boolean => {
-    // Direct UI elements
-    if (['BUTTON', 'IMG', 'INPUT', 'A', 'SVG', 'CANVAS', 'VIDEO', 'PICTURE'].includes(element.tagName)) {
-      return true;
+    try {
+      // Basic UI elements
+      if (['BUTTON', 'IMG', 'INPUT', 'A', 'SVG'].includes(element.tagName)) {
+        return true;
+      }
+      
+      // Simple class checks
+      if (element.className && (
+          element.className.includes('btn') ||
+          element.className.includes('button')
+        )) {
+        return true;
+      }
+      
+      // Simple parent checks
+      if (element.closest('button, img, a')) {
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('isUIElement error:', error);
+      return false; // Default to not UI element if error
     }
-    
-    // Elements containing images
-    if (element.querySelector('img, svg, canvas, video, picture')) {
-      return true;
-    }
-    
-    // Elements with background images
-    const computedStyle = window.getComputedStyle(element);
-    if (computedStyle.backgroundImage && computedStyle.backgroundImage !== 'none') {
-      return true;
-    }
-    
-    // Interactive elements
-    if (element.closest('button, a, [role="button"], [onclick]') ||
-        element.hasAttribute('onclick') ||
-        element.hasAttribute('role') && ['button', 'link', 'tab'].includes(element.getAttribute('role')!)) {
-      return true;
-    }
-    
-    // Class-based detection
-    if (element.className.includes('btn') ||
-        element.className.includes('button') ||
-        element.className.includes('image') ||
-        element.className.includes('img') ||
-        element.className.includes('icon')) {
-      return true;
-    }
-    
-    // Parent container checks
-    if (element.closest('.image, .img, [class*="image"], [class*="img"]')) {
-      return true;
-    }
-    
-    return false;
   };
 
   const fixOverexposure = () => {
@@ -235,6 +237,14 @@ export const VisionCorrectionDiagnostic: React.FC<VisionCorrectionDiagnosticProp
 
   return (
     <div className="vision-diagnostic bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+      {/* Mobile Debug Info - Add this near the top of the component */}
+      {mobileDebugInfo && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded p-3 mb-4">
+          <div className="text-sm font-medium text-yellow-900">Mobile Debug:</div>
+          <div className="text-xs text-yellow-700">{mobileDebugInfo}</div>
+        </div>
+      )}
+      
       <div className="mb-4">
         <h3 className="text-lg font-semibold text-red-900 mb-2">
           🔍 Vision Correction Diagnostic
