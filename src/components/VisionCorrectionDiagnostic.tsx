@@ -222,6 +222,17 @@ export const VisionCorrectionDiagnostic: React.FC<VisionCorrectionDiagnosticProp
 
   if (!isEnabled) return null;
 
+  // At the top of VisionCorrectionDiagnostic component
+  if (typeof window !== 'undefined' && window.navigator?.userAgent?.includes('Mobile')) {
+    return (
+      <div className="vision-diagnostic bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+        <div className="text-sm text-red-700">
+          🚨 Diagnostic temporarily disabled on mobile for debugging
+        </div>
+      </div>
+    );
+  }
+
   const sectionBreakdown = groupBySection(diagnosticResults);
 
   return (
