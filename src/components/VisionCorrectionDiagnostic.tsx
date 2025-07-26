@@ -184,6 +184,40 @@ export const VisionCorrectionDiagnostic: React.FC<VisionCorrectionDiagnosticProp
     console.log(`✅ Selective overexposure fix: ${fixed} fixed, ${skipped} protected`);
   };
 
+  const equalizeAllText = () => {
+    console.log('🎯 EQUALIZING ALL TEXT TO SECTION 1 CLARITY...');
+    
+    // Use Section 1's clear baseline - no enhancement, just consistency
+    const textElements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, span, li, div, td, th');
+    let applied = 0;
+    
+    textElements.forEach(element => {
+      const htmlElement = element as HTMLElement;
+      
+      // Skip UI elements with simple checks
+      if (htmlElement.tagName === 'BUTTON' || 
+          htmlElement.tagName === 'IMG' ||
+          htmlElement.closest('button') ||
+          htmlElement.className.includes('btn')) {
+        return;
+      }
+      
+      // Apply consistent baseline to all text (same as Section 1)
+      if (htmlElement.textContent && htmlElement.textContent.trim().length > 5) {
+        // Clear any existing filters first
+        htmlElement.style.filter = '';
+        htmlElement.style.fontWeight = '';
+        
+        // Apply Section 1 baseline (clear, consistent)
+        htmlElement.style.filter = 'none';
+        htmlElement.style.fontWeight = '400';
+        applied++;
+      }
+    });
+    
+    console.log(`✅ Equalized ${applied} text elements to Section 1 clarity baseline`);
+  };
+
   const makeAllSectionsEqual = () => {
     const results: string[] = ['🎯 EQUALIZING TEXT SECTIONS ONLY...'];
     
@@ -267,6 +301,13 @@ export const VisionCorrectionDiagnostic: React.FC<VisionCorrectionDiagnosticProp
           className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 text-sm ml-2"
         >
           🔧 Fix Overexposure
+        </button>
+        
+        <button 
+          onClick={equalizeAllText}
+          className="w-full px-4 py-3 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm font-medium mb-3"
+        >
+          🎯 Equalize All Text (New Baseline)
         </button>
         
         <button 
