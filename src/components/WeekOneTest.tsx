@@ -73,30 +73,47 @@ export const WeekOneTest: React.FC = () => {
   }, []);
 
   const applyFoundation = () => {
-    console.log('🚀 Applying Foundation with UI Protection...');
+    console.log('🚀 Applying Foundation with Enhanced Debugging...');
     
     const foundationFilter = 'contrast(1.6) brightness(1.12) drop-shadow(0 0 0.4px rgba(0,0,0,0.6))';
-    const textElements = document.querySelectorAll('.equalized-baseline');
-    let applied = 0;
+    const allElements = document.querySelectorAll('*');
     
-    textElements.forEach(element => {
+    let textApplied = 0;
+    let uiSkipped = 0;
+    let uiMissed = 0;
+    
+    allElements.forEach(element => {
       const htmlElement = element as HTMLElement;
       
-      // Double-check UI exclusion
-      if (htmlElement.tagName === 'BUTTON' || 
-          htmlElement.tagName === 'IMG' ||
-          htmlElement.closest('button, img') ||
-          htmlElement.className.includes('btn')) {
+      // Enhanced UI detection
+      const isButton = htmlElement.tagName === 'BUTTON';
+      const isImage = htmlElement.tagName === 'IMG';
+      const hasButtonClass = htmlElement.className?.includes('btn') || false;
+      const isInButton = htmlElement.closest('button') !== null;
+      const isInput = htmlElement.tagName === 'INPUT';
+      const isLink = htmlElement.tagName === 'A';
+      
+      const shouldSkip = isButton || isImage || hasButtonClass || isInButton || isInput || isLink;
+      
+      if (shouldSkip) {
+        uiSkipped++;
+        console.log(`🛡️ SKIPPED: ${htmlElement.tagName}.${htmlElement.className || 'no-class'} - "${htmlElement.textContent?.substring(0, 20) || ''}"`);
         return;
       }
       
-      // Apply Foundation only to equalized text elements
-      htmlElement.style.filter = foundationFilter;
-      htmlElement.style.fontWeight = '500';
-      applied++;
+      // Apply to text elements only
+      if (htmlElement.textContent && 
+          htmlElement.textContent.trim().length > 3 &&
+          ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'SPAN', 'LI', 'DIV'].includes(htmlElement.tagName)) {
+        
+        htmlElement.style.filter = foundationFilter;
+        htmlElement.style.fontWeight = '500';
+        textApplied++;
+        console.log(`✅ ENHANCED: ${htmlElement.tagName} - "${htmlElement.textContent.substring(0, 30)}..."`);
+      }
     });
     
-    console.log(`✅ Applied Foundation to ${applied} text elements (UI protected)`);
+    console.log(`📊 SUMMARY: ${textApplied} text enhanced, ${uiSkipped} UI skipped`);
   };
 
   const applyEnhancedFilter = (filterCSS: string, filterName: string) => {
