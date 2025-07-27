@@ -73,62 +73,42 @@ export const WeekOneTest: React.FC = () => {
   }, []);
 
   const applyFoundation = () => {
-    console.log('🔍 EVIDENCE GATHERING: Foundation Detection Analysis Starting...');
-    console.log('📊 MANDATORY LOGGING: Analyzing ALL elements on page');
+    console.log('🚀 FOUNDATION: Fixed Container Detection...');
     
-    // EVIDENCE: What elements exist on the page?
-    const allElements = document.querySelectorAll('*');
-    console.log(`📊 TOTAL ELEMENTS ON PAGE: ${allElements.length}`);
-    
-    // EVIDENCE: What buttons exist?
-    const buttons = document.querySelectorAll('button');
-    console.log(`🔴 BUTTONS FOUND: ${buttons.length}`);
-    buttons.forEach((btn, index) => {
-      console.log(`🔴 BUTTON ${index + 1}: tagName=${btn.tagName}, className="${btn.className}", text="${btn.textContent?.substring(0, 20)}"`);
-    });
-    
-    // EVIDENCE: What images exist?
-    const images = document.querySelectorAll('img');
-    console.log(`🖼️ IMAGES FOUND: ${images.length}`);
-    images.forEach((img, index) => {
-      console.log(`🖼️ IMAGE ${index + 1}: tagName=${img.tagName}, className="${img.className}", src="${img.src?.substring(0, 30)}"`);
-    });
-    
-    // EVIDENCE: What gets the Foundation filter applied?
     const foundationFilter = 'contrast(1.6) brightness(1.12) drop-shadow(0 0 0.4px rgba(0,0,0,0.6))';
-    let enhancedCount = 0;
-    let skippedCount = 0;
+    const textElements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, span, li, div');
+    let enhanced = 0;
+    let skipped = 0;
     
-    allElements.forEach((element, index) => {
+    textElements.forEach(element => {
       const htmlElement = element as HTMLElement;
       
-      // EVIDENCE: Document decision for each element type we care about
-      if (htmlElement.tagName === 'BUTTON') {
-        console.log(`🔴 BUTTON DECISION: Element ${index} - SHOULD BE SKIPPED`);
-        skippedCount++;
+      // CRITICAL FIX: Skip containers that have buttons/images inside them
+      if (htmlElement.querySelector('button, img, input, a')) {
+        skipped++;
+        console.log(`🛡️ SKIPPED CONTAINER: ${htmlElement.tagName} - contains UI elements`);
         return;
       }
       
-      if (htmlElement.tagName === 'IMG') {
-        console.log(`🖼️ IMAGE DECISION: Element ${index} - SHOULD BE SKIPPED`);
-        skippedCount++;
+      // Skip direct UI elements
+      if (['BUTTON', 'IMG', 'INPUT', 'A'].includes(htmlElement.tagName)) {
+        skipped++;
         return;
       }
       
-      // Apply to text elements and LOG what we're enhancing
+      // Apply only to pure text elements
       if (htmlElement.textContent && 
-          htmlElement.textContent.trim().length > 3 &&
-          ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'SPAN', 'LI', 'DIV'].includes(htmlElement.tagName)) {
+          htmlElement.textContent.trim().length > 5 &&
+          !htmlElement.className?.includes('btn')) {
         
-        console.log(`✅ ENHANCING: Element ${index} - ${htmlElement.tagName} - "${htmlElement.textContent.substring(0, 30)}..."`);
         htmlElement.style.filter = foundationFilter;
         htmlElement.style.fontWeight = '500';
-        enhancedCount++;
+        enhanced++;
+        console.log(`✅ ENHANCED: ${htmlElement.tagName} - "${htmlElement.textContent.substring(0, 30)}..."`);
       }
     });
     
-    console.log(`📊 FINAL EVIDENCE: ${enhancedCount} elements enhanced, ${skippedCount} UI elements skipped`);
-    console.log('🔍 EVIDENCE GATHERING COMPLETE - Check mobile console for results');
+    console.log(`📊 FIXED RESULT: ${enhanced} text enhanced, ${skipped} containers skipped`);
   };
 
   const applyEnhancedFilter = (filterCSS: string, filterName: string) => {
