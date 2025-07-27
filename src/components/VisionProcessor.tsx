@@ -151,7 +151,7 @@ const VisionControls: React.FC<VisionControlsProps> = ({
             <input
               type="range"
               min="0"
-              max="3.5"
+                              max="8.0"
               step="0.25"
               value={userReadingVision}
               onChange={handleReadingVisionChange}
@@ -160,7 +160,7 @@ const VisionControls: React.FC<VisionControlsProps> = ({
             <div className="flex justify-between text-xs text-gray-500 mt-1">
               <span>0.00D</span>
               <span>+1.75D</span>
-              <span>+3.50D</span>
+              <span>+8.00D</span>
             </div>
             <div className="flex justify-between text-xs text-blue-600 mt-1">
               <span>No reading glasses needed</span>

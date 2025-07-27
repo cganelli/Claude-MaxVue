@@ -814,7 +814,7 @@ const ContentDemo: React.FC = () => {
               (() => {
                 const readingVision = visionHook.settings?.readingVision || 0;
                 const calibration = calibrationValue;
-                const blurAmount = Math.abs(readingVision - calibration) * 0.5;
+                const blurAmount = Math.abs(readingVision - calibration) * 1.2;
                 console.log(
                   "🎯 ContentDemo: Rendering camera with DYNAMIC props:",
                   {
