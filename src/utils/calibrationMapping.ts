@@ -2,25 +2,27 @@
  * Calibration Scale Mapping System
  * 
  * Maps between user-friendly scale and internal calculation scale:
- * - User Scale: 0.00D to +8.00D (proper presbyopia simulation scale)
- * - Internal Scale: -4.00D to +8.00D (technical calculation scale)
+ * - User Scale: -8.00D to +8.00D (full vision correction range)
+ * - Internal Scale: -8.00D to +8.00D (technical calculation scale)
  * 
  * Key Mappings:
- * - User 0.00D = Internal -4.00D = No reading glasses needed
- * - User +2.00D = Internal -2.00D = +2.00D reading glasses prescription
- * - User +4.00D = Internal 0.00D = Desktop baseline
- * - User +6.00D = Internal +2.00D = Strong presbyopia
- * - User +8.00D = Internal +4.00D = Maximum presbyopia simulation
+ * - User -8.00D = Internal -8.00D = Strong myopia (nearsightedness)
+ * - User -4.00D = Internal -4.00D = Moderate myopia
+ * - User 0.00D = Internal 0.00D = Normal vision
+ * - User +2.00D = Internal +2.00D = Mild presbyopia
+ * - User +4.00D = Internal +4.00D = Moderate presbyopia
+ * - User +6.00D = Internal +6.00D = Strong presbyopia
+ * - User +8.00D = Internal +8.00D = Maximum presbyopia simulation
  */
 
 // Constants for the mapping system
 export const CALIBRATION_CONSTANTS = {
   // Internal scale bounds (technical calculations)
-  INTERNAL_MIN: -4.0,
+  INTERNAL_MIN: -8.0,
   INTERNAL_MAX: 8.0,
   
   // User scale bounds (UI display)
-  USER_MIN: 0.0,
+  USER_MIN: -8.0,
   USER_MAX: 8.0,
   
   // Mobile viewing distance adjustment
@@ -32,8 +34,8 @@ export const CALIBRATION_CONSTANTS = {
 
 /**
  * Convert from user-friendly scale to internal calculation scale
- * @param userValue - Value on user scale (0.00D to +8.00D)
- * @returns Value on internal scale (-4.00D to +8.00D)
+ * @param userValue - Value on user scale (-8.00D to +8.00D)
+ * @returns Value on internal scale (-8.00D to +8.00D)
  */
 export function userToInternalScale(userValue: number): number {
   // User 0.00D = Internal -4.00D
@@ -45,8 +47,8 @@ export function userToInternalScale(userValue: number): number {
 
 /**
  * Convert from internal calculation scale to user-friendly scale
- * @param internalValue - Value on internal scale (-4.00D to +8.00D)
- * @returns Value on user scale (0.00D to +8.00D)
+ * @param internalValue - Value on internal scale (-8.00D to +8.00D)
+ * @returns Value on user scale (-8.00D to +8.00D)
  */
 export function internalToUserScale(internalValue: number): number {
   // Internal -4.00D = User 0.00D
@@ -67,12 +69,18 @@ export function applyMobileAdjustment(internalDesktopValue: number): number {
 
 /**
  * Get the user-friendly description for a user scale value
- * @param userValue - Value on user scale (0.00D to +8.00D)
+ * @param userValue - Value on user scale (-8.00D to +8.00D)
  * @returns Human-readable description
  */
 export function getUserScaleDescription(userValue: number): string {
-  if (userValue <= 0.5) {
-    return "No reading glasses needed";
+  if (userValue <= -6.0) {
+    return "Strong myopia (nearsightedness)";
+  } else if (userValue <= -3.0) {
+    return "Moderate myopia";
+  } else if (userValue <= -1.0) {
+    return "Mild myopia";
+  } else if (userValue <= 0.5) {
+    return "Normal vision";
   } else if (userValue <= 1.5) {
     return "Very mild presbyopia";
   } else if (userValue <= 2.5) {
@@ -119,7 +127,7 @@ export function roundToDiopter(value: number): number {
 
 /**
  * Complete calibration workflow: user scale → mobile internal scale
- * @param userDesktopValue - User's desktop setting (0.00D to +8.00D)
+ * @param userDesktopValue - User's desktop setting (-8.00D to +8.00D)
  * @returns Object with all calculated values
  */
 export function calculateCalibrationValues(userDesktopValue: number) {

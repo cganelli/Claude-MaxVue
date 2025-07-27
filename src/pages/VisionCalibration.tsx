@@ -179,7 +179,7 @@ const VisionCalibration = () => {
             <div className="relative">
               <input
                 type="range"
-                min="0"
+                min="-8"
                 max="8.0"
                 step="0.25"
                 value={userSelectedValue}
@@ -188,7 +188,7 @@ const VisionCalibration = () => {
                 style={{ background: "#1D4262" }}
               />
               <div className="flex justify-between text-xs text-gray-500 mt-2">
-                <span>0.00D</span>
+                <span>-8.00D</span>
                 <span>+1.75D</span>
                 <span>+8.00D</span>
               </div>

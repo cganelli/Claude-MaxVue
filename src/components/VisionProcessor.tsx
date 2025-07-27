@@ -32,7 +32,7 @@ interface VisionProcessorProps {
 
 interface VisionControlsProps {
   settings: {
-    readingVision: number; // Single presbyopia correction value (-4.00D to +3.5D)
+    readingVision: number; // Single vision correction value (-8.00D to +8.00D)
     contrastBoost: number;
     edgeEnhancement: number;
   };
@@ -148,17 +148,17 @@ const VisionControls: React.FC<VisionControlsProps> = ({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Reading Vision: {userReadingVision >= 0 ? "+" : ""}{userReadingVision.toFixed(2)}D
             </label>
-            <input
+                        <input
               type="range"
-              min="0"
-                              max="8.0"
+              min="-8"
+              max="8.0"
               step="0.25"
               value={userReadingVision}
               onChange={handleReadingVisionChange}
               className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer"
             />
             <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>0.00D</span>
+                              <span>-8.00D</span>
               <span>+1.75D</span>
               <span>+8.00D</span>
             </div>
