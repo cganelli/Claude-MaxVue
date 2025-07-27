@@ -73,47 +73,62 @@ export const WeekOneTest: React.FC = () => {
   }, []);
 
   const applyFoundation = () => {
-    console.log('🚀 Applying Foundation with Enhanced Debugging...');
+    console.log('🔍 EVIDENCE GATHERING: Foundation Detection Analysis Starting...');
+    console.log('📊 MANDATORY LOGGING: Analyzing ALL elements on page');
     
-    const foundationFilter = 'contrast(1.6) brightness(1.12) drop-shadow(0 0 0.4px rgba(0,0,0,0.6))';
+    // EVIDENCE: What elements exist on the page?
     const allElements = document.querySelectorAll('*');
+    console.log(`📊 TOTAL ELEMENTS ON PAGE: ${allElements.length}`);
     
-    let textApplied = 0;
-    let uiSkipped = 0;
-    let uiMissed = 0;
+    // EVIDENCE: What buttons exist?
+    const buttons = document.querySelectorAll('button');
+    console.log(`🔴 BUTTONS FOUND: ${buttons.length}`);
+    buttons.forEach((btn, index) => {
+      console.log(`🔴 BUTTON ${index + 1}: tagName=${btn.tagName}, className="${btn.className}", text="${btn.textContent?.substring(0, 20)}"`);
+    });
     
-    allElements.forEach(element => {
+    // EVIDENCE: What images exist?
+    const images = document.querySelectorAll('img');
+    console.log(`🖼️ IMAGES FOUND: ${images.length}`);
+    images.forEach((img, index) => {
+      console.log(`🖼️ IMAGE ${index + 1}: tagName=${img.tagName}, className="${img.className}", src="${img.src?.substring(0, 30)}"`);
+    });
+    
+    // EVIDENCE: What gets the Foundation filter applied?
+    const foundationFilter = 'contrast(1.6) brightness(1.12) drop-shadow(0 0 0.4px rgba(0,0,0,0.6))';
+    let enhancedCount = 0;
+    let skippedCount = 0;
+    
+    allElements.forEach((element, index) => {
       const htmlElement = element as HTMLElement;
       
-      // Enhanced UI detection
-      const isButton = htmlElement.tagName === 'BUTTON';
-      const isImage = htmlElement.tagName === 'IMG';
-      const hasButtonClass = htmlElement.className?.includes('btn') || false;
-      const isInButton = htmlElement.closest('button') !== null;
-      const isInput = htmlElement.tagName === 'INPUT';
-      const isLink = htmlElement.tagName === 'A';
-      
-      const shouldSkip = isButton || isImage || hasButtonClass || isInButton || isInput || isLink;
-      
-      if (shouldSkip) {
-        uiSkipped++;
-        console.log(`🛡️ SKIPPED: ${htmlElement.tagName}.${htmlElement.className || 'no-class'} - "${htmlElement.textContent?.substring(0, 20) || ''}"`);
+      // EVIDENCE: Document decision for each element type we care about
+      if (htmlElement.tagName === 'BUTTON') {
+        console.log(`🔴 BUTTON DECISION: Element ${index} - SHOULD BE SKIPPED`);
+        skippedCount++;
         return;
       }
       
-      // Apply to text elements only
+      if (htmlElement.tagName === 'IMG') {
+        console.log(`🖼️ IMAGE DECISION: Element ${index} - SHOULD BE SKIPPED`);
+        skippedCount++;
+        return;
+      }
+      
+      // Apply to text elements and LOG what we're enhancing
       if (htmlElement.textContent && 
           htmlElement.textContent.trim().length > 3 &&
           ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'SPAN', 'LI', 'DIV'].includes(htmlElement.tagName)) {
         
+        console.log(`✅ ENHANCING: Element ${index} - ${htmlElement.tagName} - "${htmlElement.textContent.substring(0, 30)}..."`);
         htmlElement.style.filter = foundationFilter;
         htmlElement.style.fontWeight = '500';
-        textApplied++;
-        console.log(`✅ ENHANCED: ${htmlElement.tagName} - "${htmlElement.textContent.substring(0, 30)}..."`);
+        enhancedCount++;
       }
     });
     
-    console.log(`📊 SUMMARY: ${textApplied} text enhanced, ${uiSkipped} UI skipped`);
+    console.log(`📊 FINAL EVIDENCE: ${enhancedCount} elements enhanced, ${skippedCount} UI elements skipped`);
+    console.log('🔍 EVIDENCE GATHERING COMPLETE - Check mobile console for results');
   };
 
   const applyEnhancedFilter = (filterCSS: string, filterName: string) => {
