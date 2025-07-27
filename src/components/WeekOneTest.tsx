@@ -112,27 +112,49 @@ export const WeekOneTest: React.FC = () => {
   };
 
   const applyEnhancedFilter = (filterCSS: string, filterName: string) => {
-    console.log(`🎯 Applying ${filterName} to equalized baseline...`);
+    console.log(`🎯 ENHANCED FILTER: ${filterName} with Fixed Container Detection...`);
     
-    const textElements = document.querySelectorAll('.equalized-baseline');
-    let applied = 0;
+    // Use more conservative enhanced filters to prevent overexposure
+    const conservativeFilters = {
+      'Enhanced Contrast': 'contrast(1.7) brightness(1.10) drop-shadow(0 0 0.3px rgba(0,0,0,0.7))',
+      'Maximum Sharpness': 'contrast(1.65) brightness(1.08) drop-shadow(0 0 0.2px rgba(0,0,0,0.8))'
+    };
+    
+    const actualFilter = conservativeFilters[filterName as keyof typeof conservativeFilters] || filterCSS;
+    
+    const textElements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, span, li, div');
+    let enhanced = 0;
+    let skipped = 0;
     
     textElements.forEach(element => {
       const htmlElement = element as HTMLElement;
       
-      // Skip UI elements
-      if (htmlElement.tagName === 'BUTTON' || 
-          htmlElement.tagName === 'IMG' ||
-          htmlElement.closest('button, img')) {
+      // CRITICAL FIX: Skip containers that have buttons/images inside them
+      if (htmlElement.querySelector('button, img, input, a')) {
+        skipped++;
+        console.log(`🛡️ SKIPPED CONTAINER (${filterName}): ${htmlElement.tagName} - contains UI elements`);
         return;
       }
       
-      htmlElement.style.filter = filterCSS;
-      htmlElement.style.fontWeight = '520';
-      applied++;
+      // Skip direct UI elements
+      if (['BUTTON', 'IMG', 'INPUT', 'A'].includes(htmlElement.tagName)) {
+        skipped++;
+        return;
+      }
+      
+      // Apply only to pure text elements
+      if (htmlElement.textContent && 
+          htmlElement.textContent.trim().length > 5 &&
+          !htmlElement.className?.includes('btn')) {
+        
+        htmlElement.style.filter = actualFilter;
+        htmlElement.style.fontWeight = '510';
+        enhanced++;
+        console.log(`✅ ENHANCED (${filterName}): ${htmlElement.tagName} - "${htmlElement.textContent.substring(0, 30)}..."`);
+      }
     });
     
-    console.log(`✅ Applied ${filterName} to ${applied} text elements`);
+    console.log(`📊 ${filterName} RESULT: ${enhanced} text enhanced, ${skipped} containers skipped`);
   };
   
   return (
